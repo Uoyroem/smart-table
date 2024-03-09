@@ -49,7 +49,7 @@
             lastRowTarget: "#last-row",
             rowsTarget: "#rows",
             getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/api-get-values",
-            getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/api-get-rows",
+            getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/api-get-mandatory-payment-seizures",
             loadingHtml: `
                 <tr>
                     <td class="text-center" colspan="5">
@@ -60,11 +60,12 @@
                 </tr>
             `,
             getTr(row) {
+                console.log(row);
                 return `
                     <tr>
-                        <td class="smart-table__cell active" data-st-field="project_region__name">${row.project_region_id}</td>
-                        <td class="smart-table__cell active" data-st-field="mandatory_payment__name">${row.mandatory_payment_id}</td>
-                        <td class="smart-table__cell active" data-st-field="account__name">${row.account_id}</td>
+                        <td class="smart-table__cell active" data-st-field="project_region__name">${row.project_region.name}</td>
+                        <td class="smart-table__cell active" data-st-field="mandatory_payment__name">${row.mandatory_payment.name}</td>
+                        <td class="smart-table__cell active" data-st-field="account__name">${row.account ? row.account.name : ""}</td>
                         <td class="smart-table__cell active" data-st-field="sum">${row.sum}</td>
                         <td class="smart-table__cell active" data-st-field="datetime">${row.datetime}</td>
                     </tr>

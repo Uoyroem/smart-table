@@ -185,7 +185,7 @@ $.fn.smartTable = function (options) {
         case "date":
           return a - b;
         default:
-          return options.collator ? options.collator.compare(a, b) : a.toString().localeCompare(b.toString());
+          return options.collator ? options.collator.compare(a || '', b || '') : (a || '').toString().localeCompare((b || '').toString());
       }
     });
     $menuValueCheckboxes.empty();
@@ -395,9 +395,6 @@ $.fn.smartTable = function (options) {
 
 $.fn.smartTableWithVirtualScroll = function (options) {
   this.smartTable({
-    numberFormat: new Intl.NumberFormat("ru-RU",),
-    dateTimeFormat: new Intl.DateTimeFormat("ru-RU"),
-    collator: new Intl.Collator("ru-RU"),
     async getValues(field, fieldValuesList) {
       const response = await fetch(options.getValuesUrl, {
         method: "POST",
