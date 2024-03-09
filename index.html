@@ -45,11 +45,10 @@
     <script src="smart-table.js"></script>
     <script>
         $("#some-table").smartTableWithVirtualScroll({
-            modelName: "mandatorypaymentseizure",
             lastRowTarget: "#last-row",
             rowsTarget: "#rows",
-            getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/api-get-values",
-            getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/api-get-mandatory-payment-seizures",
+            getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-values",
+            getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-rows",
             loadingHtml: `
                 <tr>
                     <td class="text-center" colspan="5">

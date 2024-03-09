@@ -399,7 +399,6 @@ $.fn.smartTableWithVirtualScroll = function (options) {
       const response = await fetch(options.getValuesUrl, {
         method: "POST",
         body: JSON.stringify({
-          modelName: options.modelName,
           field,
           fieldValuesList,
         }),
@@ -415,7 +414,6 @@ $.fn.smartTableWithVirtualScroll = function (options) {
         const response = await fetch(this.next, {
           method: "POST",
           body: JSON.stringify({
-            modelName: options.modelName,
             fieldValuesList,
             order
           }),
@@ -454,6 +452,7 @@ $.fn.smartTableWithVirtualScroll = function (options) {
       this.reset();
       await this.insertRows(fieldValuesList, order);
       observer.observe($(options.lastRowTarget)[0]);
-    }
+    },
+    ...options
   });
 };
