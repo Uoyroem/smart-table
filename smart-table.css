@@ -18,10 +18,10 @@
     --bs-dropdown-min-width: 20em;
 }
 
-.smart-table__menu-values {
+.smart-table__menu-value-checkboxes {
     max-height: 10em;
     overflow-y: scroll;
-    
+
 }
 
 .smart-table__menu.active {

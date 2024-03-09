@@ -20,11 +20,11 @@
         <table id="some-table" class="table table-bordered">
             <thead>
                 <tr>
-                    <th data-st-field="project_region">ПМ</th>
-                    <th data-st-field="mandatory_payment">Статья</th>
-                    <th data-st-field="account">р/с</th>
-                    <th data-st-field="sum">Сумма</th>
-                    <th data-st-field="datetime">Дата</th>
+                    <th data-st-field="project_region__name" data-st-type="string">ПМ</th>
+                    <th data-st-field="mandatory_payment__name">Статья</th>
+                    <th data-st-field="account__name">р/с</th>
+                    <th data-st-field="sum" data-st-type="number">Сумма</th>
+                    <th data-st-field="datetime" data-st-type="date">Дата</th>
                 </tr>
             </thead>
             <tbody>
@@ -41,6 +41,9 @@
     <script src="smart-table.js"></script>
     <script>
         $("#some-table").smartTable({
+            numberFormat: new Intl.NumberFormat("ru-RU", ),
+            dateTimeFormat: new Intl.DateTimeFormat("ru-RU"),
+            collator: new Intl.Collator("ru-RU"),
             async getValues(field, fieldValues) {
                 const response = await fetch("http://127.0.0.1:8000/p1/finance-module/api-get-values", {
                     method: "POST",

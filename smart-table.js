@@ -118,15 +118,14 @@ $.fn.smartTable = function (options) {
     $menu.addClass("active");
     $menu.appendTo(this);
   }).mouseleave(function () {
-    $activeTh = null;
     $menu.removeClass("active");
     $menu.dropdown("hide");
   });
 
   const $menuSearchInput = $(".smart-table__menu-value-search-input", $menu);
   function getSearchQueryValueCheckboxes(shouldMatchSearchQuery = true) {
+    const searchQuery = $menuSearchInput.val();
     return $(".smart-table__menu-value-checkbox", $menu).filter(function() {
-      const searchQuery = $menuSearchInput.val();
       const isMatched = $(this).val().toLowerCase().includes(searchQuery.toLowerCase());
       return shouldMatchSearchQuery ? isMatched : !isMatched;
     });
@@ -141,35 +140,83 @@ $.fn.smartTable = function (options) {
   });
 
   const $menuValueCheckboxes = $(".smart-table__menu-value-checkboxes", $menu);
-  const fieldValues = [];
+  const fieldValuesList = [];
   $menu.on("shown.bs.dropdown", async function() {
+    newOrder = JSON.parse(JSON.stringify(order));
     $menuSearchInput.val($activeTh.data("search-query"));
+    $activeTh.data("newSort", $activeTh.data("sort"));
     changeSortIcon();
     changeOrder();
     $menuValueCheckboxes.html(`
-      <li class="list-group-item">
-        <div class="spinner-border text-success" role="status">
+      <li class="list-group-item text-center">
+        <div class="spinner-border spinner-border-sm text-success" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </li>
     `);
     const field = $activeTh.data("stField");
-    const values = await options.getValues(field, fieldValues);
+    const type = $activeTh.data("stType");
+    let values = await options.getValues(field, fieldValuesList);
+    values = Array.from(new Set(Array.from(values).map(function(value) {
+      switch (type) {
+        case "number":
+          return parseFloat(value);
+        case "date":
+          return new Date(new Date(value).toDateString());
+        default:
+          return value;
+      }
+    })));
+    values.sort(function(a, b) {
+      switch (type) {
+        case "number":
+        case "date":
+          return a - b;
+        default:
+          return options.collator ? options.collator.compare(a, b) : a.toString().localeCompare(b.toString());
+      }
+    });
     $menuValueCheckboxes.empty();
-    for (const value of values) {
+    
+    for (let value of values) {
       if (!value) {
-
-      } else {
-        $menuValueCheckboxes.append(`
+        if ($menuValueCheckboxes.find(`.smart-table__menu-value-checkbox[value=""]`).length !== 0) {
+          continue;
+        }
+        $menuValueCheckboxes.prepend(`
           <li class="list-group-item">
             <div class="form-check">
-              <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${value}" id="flexCheckDefault">
-              <label class="form-check-label" for="flexCheckDefault">
-                ${value}
+              <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="" id="empty-checkbox" checked>
+              <label class="form-check-label" for="empty-checkbox">
+                (Пустые)
               </label>
             </div>
           </li>
         `);
+      } else {
+        let formattedValue = value;
+        switch (type) {
+          case "number":
+            formattedValue = options.numberFormat ? options.numberFormat.format(formattedValue) : formattedValue;
+            break;
+          case "date":
+            formattedValue = options.dateTimeFormat ? options.dateTimeFormat.format(formattedValue) : formattedValue.toLocaleDateString();
+            value = value.toDateString();
+            break;
+        }
+        const id = `checkbox-${value}`;
+        $menuValueCheckboxes.append(`
+          <li class="list-group-item">
+            <div class="form-check">
+              <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${value}" id="${id}">
+              <label class="form-check-label" for="${id}">
+                ${formattedValue}
+              </label>
+            </div>
+          </li>
+        `);
+        
+        $(".smart-table__menu-value-checkbox").prop("checked", )
       }
     }
     $menuValueCheckboxes.append(`
@@ -180,12 +227,15 @@ $.fn.smartTable = function (options) {
   });
 
   $menu.on("hidden.bs.dropdown", function() {
-    
+    $menuValueCheckboxes.empty();
+    $activeTh.data("newSort", null);
+    newOrder = null;
+    $activeTh = null;
   });
 
   const $menuButtonSortIcon = $(".smart-table__menu-sort-button-icon", $menu);
   function changeSortIcon() {
-    const sort = $activeTh.data("sort");
+    const sort = $activeTh.data("newSort");
     if (!sort) {
       $menuButtonSortIcon.html(`<i class="fa-solid fa-sort"></i>`);
     } else if (sort === "asc") {
@@ -194,24 +244,25 @@ $.fn.smartTable = function (options) {
       $menuButtonSortIcon.html(`<i class="fa-solid fa-sort-down"></i>`);
     }
   }
-  const order = [];
+  let order = [];
+  let newOrder = null;
   const $menuButtonSortOrder = $(".smart-table__menu-sort-order", $menu);
   function changeOrder() {
     const field = $activeTh.data("stField");
-    const sort = $activeTh.data("sort");
-    const fieldSort = order.find(fieldSort => fieldSort.field == field);
+    const sort = $activeTh.data("newSort");
+    const fieldSort = newOrder.find(fieldSort => fieldSort.field == field);
     let index = null;
     if (fieldSort) {
-      index = order.indexOf(fieldSort);
+      index = newOrder.indexOf(fieldSort);
       if (sort) {
         fieldSort.sort = sort;
       } else {
-        order.splice(index, 1);
+        newOrder.splice(index, 1);
         index = null;
       }
     } else if (sort) {
-      index = order.length;
-      order.push({
+      index = newOrder.length;
+      newOrder.push({
         field,
         sort
       });
@@ -219,13 +270,13 @@ $.fn.smartTable = function (options) {
     $menuButtonSortOrder.html(index != null ? index + 1 : "");
   }
   $(".smart-table__menu-sort-button", $menu).on("click", function() {
-    const sort = $activeTh.data("sort");
+    const sort = $activeTh.data("newSort") || $activeTh.data("sort");
     if (!sort) {
-      $activeTh.data("sort", "asc");
+      $activeTh.data("newSort", "asc");
     } else if (sort === "asc") {
-      $activeTh.data("sort", "desc");
+      $activeTh.data("newSort", "desc");
     } else {
-      $activeTh.data("sort", null);
+      $activeTh.data("newSort", null);
     }
     changeSortIcon();
     changeOrder();
@@ -236,6 +287,39 @@ $.fn.smartTable = function (options) {
   });
 
   $(".submit-button", $menu).on("click", function() {
+    $activeTh.data("sort", $activeTh.data("newSort"));
+    order = newOrder;
+    const field = $activeTh.data("stField");
+    const matchedCheckboxes = getSearchQueryValueCheckboxes();
+    const unmatchedCheckboxes = getSearchQueryValueCheckboxes();
+    const fieldValues = fieldValuesList.find(fieldValues => fieldValues.field === field);
+    if (unmatchedCheckboxes.length === 0 && value) {
+      fieldValuesList.splice(fieldValuesList.indexOf(fieldValues), 1);
+    } else if (unmatchedCheckboxes.length > matchedCheckboxes.length) {
+      const include = Array.from(matchedCheckboxes).map(matchedCheckbox => $(matchedCheckbox).val());
+      if (fieldValues) {
+        fieldValues.include = include;
+        fieldValues.exclude = [];
+      } else {
+        fieldValuesList.push({
+          field,
+          include,
+          exclude: []
+        })
+      }
+    } else {
+      const exclude = Array.from(unmatchedCheckboxes).map(unmatchedCheckbox => $(unmatchedCheckbox).val());
+      if (fieldValues) {
+        fieldValues.include = [];
+        fieldValues.exclude = exclude;
+      } else {
+        fieldValuesList.push({
+          field,
+          include: [],
+          exclude
+        })
+      }
+    }
     $menu.dropdown("hide");
   });
 
