@@ -4,7 +4,7 @@ $.fn.smartTable = function (options) {
   const $smartTable = this;
   $smartTable.addClass("smart-table");
   $("td, th", $smartTable).addClass("smart-table__cell active");
-  $("th", $smartTable).addClass("smart-table__th")
+  $("thead th", $smartTable).addClass("smart-table__th");
   const $settings = $(`
     <div class="dropdown smart-table__settings">
       <button class="btn btn-sm" data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -31,7 +31,7 @@ $.fn.smartTable = function (options) {
   const $columnToggleCheckboxes = $(".smart-table__column-toggle-checkboxes", $settings);
   $(".smart-table__reset-button", $settings).on("click", async function () {
     fieldValuesList = [];
-    order = [];
+    resetOrder();
     await showRows();
     $settings.dropdown("hide");
   });
@@ -121,8 +121,7 @@ $.fn.smartTable = function (options) {
   $smartTable.append($menu);
 
   let $activeTh = null;
-  $(`thead th`).mouseenter(function () {
-    $activeTh = $(this);
+  $(`.smart-table__th`).mouseenter(function () {
     $menu.addClass("active");
     $menu.appendTo(this);
   }).mouseleave(function () {
@@ -154,6 +153,7 @@ $.fn.smartTable = function (options) {
   const $menuValueCheckboxes = $(".smart-table__menu-value-checkboxes", $menu);
   let fieldValuesList = [];
   $menu.on("shown.bs.dropdown", async function () {
+    $activeTh = $(this).closest(".smart-table__th");
     newOrder = JSON.parse(JSON.stringify(order));
     $menuSearchInput.val($activeTh.data("search-query"));
     $activeTh.data("newSort", $activeTh.data("sort"));
@@ -260,7 +260,15 @@ $.fn.smartTable = function (options) {
       $menuButtonSortIcon.html(`<i class="fa-solid fa-sort-down"></i>`);
     }
   }
-  let order = [];
+  let order;
+  function resetOrder() {
+    order = JSON.parse(JSON.stringify(options.defaultOrder || []));
+    $(".smart-table__th", $smartTable).data("sort", null);
+    for (const fieldSort of order) {
+      $(`.smart-table__th[data-st-field="${fieldSort.field}"]`).data("sort", fieldSort.sort);
+    }
+  }
+  resetOrder();
   let newOrder = null;
   const $menuButtonSortOrder = $(".smart-table__menu-sort-order", $menu);
   function changeOrder() {
