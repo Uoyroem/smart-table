@@ -29,7 +29,7 @@ $.fn.smartTable = function (options) {
   `);
   $smartTable.before($settings);
   const $columnToggleCheckboxes = $(".smart-table__column-toggle-checkboxes", $settings);
-  $(".smart-table__reset-button", $settings).on("click", async function() {
+  $(".smart-table__reset-button", $settings).on("click", async function () {
     fieldValuesList = [];
     order = [];
     await showRows();
@@ -52,6 +52,9 @@ $.fn.smartTable = function (options) {
         } else {
           activeColumnFields.delete(field);
         }
+        const checkboxes = $(".smart-table__column-toggle-checkbox:checked");
+        checkboxes.prop("disabled", checkboxes.length === 1);
+
         $(`.smart-table__cell[data-st-field="${field}"]`, $smartTable).toggleClass("active", checked);
       }).end();
       $columnToggleCheckboxes.append(checkbox);
@@ -67,14 +70,14 @@ $.fn.smartTable = function (options) {
         <li class="mb-2">
           <button class="btn dropdown-item smart-table__menu-sort-button">
             <div class="row">
-              <div class="col-2">
-                <span class="smart-table__menu-sort-order">
+              <div class="col-1">
+                <span class="smart-table__menu-sort-order text-primary-emphasis fw-bold">
                 </span>
                 <span class="smart-table__menu-sort-button-icon">
                   <i class="fa-solid fa-sort"></i>
                 </span>
               </div>
-              <div class="col-10">
+              <div class="col-11">
                 Сортировать
               </div>
             </div>
@@ -88,12 +91,12 @@ $.fn.smartTable = function (options) {
               <button class="btn btn-sm btn-link smart-table__menu-value-uncheck-all">
               Сбросить
             </button>
-            <div class="input-group input-group-sm mb-2">
+            <div class="position-relative mb-2">
               <input type="search" class="form-control smart-table__menu-value-search-input"/>
-              <span class="input-group-text">
+              
                 
-              <i class="fa-solid fa-magnifying-glass"></i>
-              </span>
+              <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
+             
             </div>
             
             <ul class="list-group list-group-flush smart-table__menu-value-checkboxes border rounded">
@@ -104,10 +107,10 @@ $.fn.smartTable = function (options) {
         <li><hr class="dropdown-divider"></li>
         <li>
           <div class="text-end mx-2">
-            <button class="btn btn-sm btn-outline-danger cancel-button">
+            <button class="btn btn-sm btn-outline-primary cancel-button">
               Отмена
             </button>
-            <button class="btn btn-sm btn-success submit-button">
+            <button class="btn btn-sm btn-primary submit-button">
               Принять
             </button>
           </div>
@@ -158,7 +161,7 @@ $.fn.smartTable = function (options) {
     changeOrder();
     $menuValueCheckboxes.html(`
       <li class="list-group-item text-center">
-        <div class="spinner-border spinner-border-sm text-success" role="status">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
           <span class="visually-hidden">Loading...</span>
         </div>
       </li>
@@ -166,7 +169,7 @@ $.fn.smartTable = function (options) {
     const field = $activeTh.data("stField");
     const type = $activeTh.data("stType");
     let values = await options.getValues(field, fieldValuesList);
-    values = Array.from(new Set(Array.from(values).map(function (value) {
+    values = Array.from(new Set(values)).map(function (value) {
       switch (type) {
         case "number":
           return parseFloat(value);
@@ -175,7 +178,7 @@ $.fn.smartTable = function (options) {
         default:
           return value;
       }
-    })));
+    });
     values.sort(function (a, b) {
       switch (type) {
         case "number":
@@ -283,7 +286,7 @@ $.fn.smartTable = function (options) {
     $menuButtonSortOrder.html(index != null ? index + 1 : "");
   }
   $(".smart-table__menu-sort-button", $menu).on("click", function () {
-    const sort = $activeTh.data("newSort") || $activeTh.data("sort");
+    const sort = $activeTh.data("newSort");
     if (!sort) {
       $activeTh.data("newSort", "asc");
     } else if (sort === "asc") {
