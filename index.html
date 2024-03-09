@@ -27,8 +27,12 @@
                     <th data-st-field="datetime" data-st-type="date">Дата</th>
                 </tr>
             </thead>
-            <tbody>
-
+            <tbody id="rows">
+                <tr id="last-row">
+                    <td colspan="5">
+                        <div style="height: 10px;"></div>
+                    </td>
+                </tr>
             </tbody>
         </table>
 
@@ -44,17 +48,81 @@
             numberFormat: new Intl.NumberFormat("ru-RU", ),
             dateTimeFormat: new Intl.DateTimeFormat("ru-RU"),
             collator: new Intl.Collator("ru-RU"),
-            async getValues(field, fieldValues) {
+            async getValues(field, fieldValuesList) {
                 const response = await fetch("http://127.0.0.1:8000/p1/finance-module/api-get-values", {
                     method: "POST",
                     body: JSON.stringify({
                         modelName: "mandatorypaymentseizure",
                         field,
-                        fieldValues,
+                        fieldValuesList,
                     }),
                 });
                 const data = await response.json();
                 return data.values;
+            },
+            reset() {
+                this.next = "http://127.0.0.1:8000/p1/finance-module/api-get-rows"
+            },
+            async getRows(fieldValuesList, order) {
+                if (this.next) {
+                    const response = await fetch(this.next, {
+                        method: "POST",
+                        body: JSON.stringify({
+                            modelName: "mandatorypaymentseizure",
+                            fieldValuesList,
+                            order
+                        }),
+                    });
+                    await new Promise((resolve, reject) => {
+                        setTimeout(resolve, 1000);
+                    });
+                    const data = await response.json();
+                    this.next = data.next;
+                    return data.rows;
+                } 
+                return null;
+            },
+            async insertRows(fieldValuesList, order) {
+                const $rows = $("#rows");
+                const $lastRow = $("#last-row");
+                const $loadingTr = $lastRow.before(`
+                    <tr>
+                        <td class="text-center" colspan="5">
+                            <div class="spinner-border" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </td>
+                    </tr>
+                `).prev();
+                const rows = await this.getRows(fieldValuesList, order);
+                $loadingTr.remove();
+                if (rows) {
+                    for (const row of rows) {
+                        $lastRow.before(`
+                            <tr>
+                                <td class="smart-table__cell active" data-st-field="project_region__name">${row.project_region_id}</td>
+                                <td class="smart-table__cell active" data-st-field="mandatory_payment__name">${row.mandatory_payment_id}</td>
+                                <td class="smart-table__cell active" data-st-field="account__name">${row.account_id}</td>
+                                <td class="smart-table__cell active" data-st-field="sum">${row.sum}</td>
+                                <td class="smart-table__cell active" data-st-field="datetime">${row.datetime}</td>
+                            </tr>
+                        `);
+                    }
+                }
+            },
+            async showRows(fieldValuesList, order) {
+                const $rows = $("#rows");
+                $rows.find(":not(#last-row)").empty();
+                const observer = new IntersectionObserver(async (entries, observer) => {
+                    if (entries[0].isIntersecting) {
+                        observer.unobserve($("#last-row")[0]);
+                        await this.insertRows(fieldValuesList, order);
+                        observer.observe($("#last-row")[0]);
+                    }
+                });
+                this.reset();
+                await this.insertRows(fieldValuesList, order);
+                observer.observe($("#last-row")[0]);
             }
         });
     </script>

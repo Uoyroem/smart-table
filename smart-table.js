@@ -177,7 +177,6 @@ $.fn.smartTable = function (options) {
       }
     });
     $menuValueCheckboxes.empty();
-    
     for (let value of values) {
       if (!value) {
         if ($menuValueCheckboxes.find(`.smart-table__menu-value-checkbox[value=""]`).length !== 0) {
@@ -208,16 +207,20 @@ $.fn.smartTable = function (options) {
         $menuValueCheckboxes.append(`
           <li class="list-group-item">
             <div class="form-check">
-              <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${value}" id="${id}">
+              <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${value}" id="${id}" checked>
               <label class="form-check-label" for="${id}">
                 ${formattedValue}
               </label>
             </div>
           </li>
         `);
-        
-        $(".smart-table__menu-value-checkbox").prop("checked", )
       }
+    }
+    const fieldValues = fieldValuesList.find(fieldValues => fieldValues.field === field);
+    if (fieldValues) {
+      $(".smart-table__menu-value-checkbox", $menu).each(function() {
+        $(this).prop("checked", fieldValues.exclude.length === 0 ? fieldValues.include.includes($(this).val()) : !fieldValues.exclude.includes($(this).val()));
+      });
     }
     $menuValueCheckboxes.append(`
       <li class="list-group-item smart-table__menu-empty-value d-none text-center">
@@ -286,15 +289,25 @@ $.fn.smartTable = function (options) {
     $menu.dropdown("hide");
   });
 
-  $(".submit-button", $menu).on("click", function() {
+  async function showRows() {
+    try {
+      await options.showRows(fieldValuesList, order);
+    } catch(error) {
+      console.error(error);
+    }
+  }
+
+  $(".submit-button", $menu).on("click", async function() {
     $activeTh.data("sort", $activeTh.data("newSort"));
     order = newOrder;
     const field = $activeTh.data("stField");
-    const matchedCheckboxes = getSearchQueryValueCheckboxes();
-    const unmatchedCheckboxes = getSearchQueryValueCheckboxes();
+    const matchedCheckboxes = $(".smart-table__menu-value-checkbox:checked", $menu);
+    const unmatchedCheckboxes = $(".smart-table__menu-value-checkbox:not(:checked)", $menu);
     const fieldValues = fieldValuesList.find(fieldValues => fieldValues.field === field);
-    if (unmatchedCheckboxes.length === 0 && value) {
-      fieldValuesList.splice(fieldValuesList.indexOf(fieldValues), 1);
+    if (unmatchedCheckboxes.length === 0) {
+      if (fieldValues) {
+        fieldValuesList.splice(fieldValuesList.indexOf(fieldValues), 1);
+      }
     } else if (unmatchedCheckboxes.length > matchedCheckboxes.length) {
       const include = Array.from(matchedCheckboxes).map(matchedCheckbox => $(matchedCheckbox).val());
       if (fieldValues) {
@@ -320,6 +333,7 @@ $.fn.smartTable = function (options) {
         })
       }
     }
+    await showRows();
     $menu.dropdown("hide");
   });
 
@@ -330,7 +344,7 @@ $.fn.smartTable = function (options) {
   $(".smart-table__menu-value-uncheck-all").on("click", function() {
     getSearchQueryValueCheckboxes().prop("checked", false);
   });
-
+  showRows();
   // Active and disable columns
 
   // // Menu open and close
