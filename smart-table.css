@@ -1,0 +1,49 @@
+.smart-table {
+    position: relative;
+}
+
+.smart-table__settings {
+    display: block;
+
+}
+
+.smart-table__menu {
+    display: none;
+    position: absolute;    
+    bottom: 0.1em;
+    right: 0.1em;
+}
+
+.smart-table__menu > * {
+    --bs-dropdown-min-width: 20em;
+}
+
+.smart-table__menu-values {
+    max-height: 10em;
+    overflow-y: scroll;
+    
+}
+
+.smart-table__menu.active {
+    display: block;
+}
+
+.smart-table__cell {
+    display: none;
+}
+
+.smart-table__cell.active {
+    display: table-cell;
+}
+
+.smart-table__th {
+    position: relative;
+}
+
+.smart-table-container__column-toggle-checkbox {}
+
+.smart-table {
+
+}
+
+.button {}
