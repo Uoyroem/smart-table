@@ -149,7 +149,14 @@ $.fn.smartTable = function (options) {
     $activeTh.data("search-query", $(this).val());
     showSearchQueryResults();
   });
-
+  function getType(th) {
+    let type = th.data("stType");
+    if (!type) {
+      type = "string";
+      th.data("stType", type);
+    }
+    return type;
+  }
   const $menuValueCheckboxes = $(".smart-table__menu-value-checkboxes", $menu);
   let fieldValuesList = [];
   $menu.on("shown.bs.dropdown", async function () {
@@ -167,11 +174,7 @@ $.fn.smartTable = function (options) {
       </li>
     `);
     const field = $activeTh.data("stField");
-    let type = $activeTh.data("stType");
-    if (!type) {
-      $activeTh.data("stType", "string");
-      type = "string";
-    }
+    const type = getType($activeTh);
     let values = await options.getValues(field, type, fieldValuesList);
     values = Array.from(new Set(Array.from(values).map(function (value) {
       switch (type) {
@@ -273,7 +276,7 @@ $.fn.smartTable = function (options) {
     $(".smart-table__th", $smartTable).data("sort", null);
     for (const fieldSort of order) {
       const th = $(`.smart-table__th[data-st-field="${fieldSort.field}"]`);
-      fieldSort["type"] = th.data("type") || "string";
+      fieldSort["type"] = getType(th);
       th.data("sort", fieldSort.sort);
     }
   }
@@ -282,7 +285,7 @@ $.fn.smartTable = function (options) {
   const $menuButtonSortOrder = $(".smart-table__menu-sort-order", $menu);
   function changeOrder() {
     const field = $activeTh.data("stField");
-    const type = $activeTh.data("stType");
+    const type = getType($activeTh);
     const sort = $activeTh.data("newSort");
     const fieldSort = newOrder.find(fieldSort => fieldSort.field == field);
     let index = null;
@@ -380,39 +383,6 @@ $.fn.smartTable = function (options) {
     getSearchQueryValueCheckboxes().prop("checked", false);
   });
   showRows();
-  // Active and disable columns
-
-  // // Menu open and close
-  // let $activeMenuButton = null;
-  // $(".smart-table__cell .smart-table__menu-button", this).on("click", function (event) {
-  //   event.stopPropagation();
-  //   if ($activeMenuButton == null) {
-  //     $menu.addClass("active");
-  //   }
-  //   else if ($activeMenuButton.is($(this))) {
-  //     $menu.removeClass("active");
-  //     $activeMenuButton = null;
-  //     $(this).trigger("st-menu-closed");
-  //     return;
-  //   }
-  //   console.log(this);
-  //   const offset = $(this).offset();
-  //   const smartTableContainerOffset = $smartTableContainer.offset();
-  //   offset.top -= smartTableContainerOffset.top;
-  //   offset.left -= smartTableContainerOffset.left;
-  //   offset.top += $(this).outerHeight();
-  //   $menu.css(offset);
-  //   $(this).trigger("st-menu-opened");
-  //   $activeMenuButton = $(this);
-  // });
-  // $menu.on("click", function (event) {
-  //   event.stopPropagation();
-  // });
-  // $(document).on("click", function () {
-  //   $menu.removeClass("active");
-  //   $activeMenuButton = null;
-  //   $(this).trigger("st-menu-closed");
-  // });
 };
 
 $.fn.smartTableWithVirtualScroll = function (options) {
