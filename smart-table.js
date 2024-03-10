@@ -234,11 +234,11 @@ $.fn.smartTable = function (options) {
       }
       switch (type) {
         case "number":
-          return a - b;
+          return b - a;
         case "date":
           return new Date(b) - new Date(a);
         default:
-          return options.collator ? options.collator.compare(a, b) : a.toString().localeCompare(b.toString());
+          return options.collator ? options.collator.compare(b, a) : b.toString().localeCompare(a.toString());
       }
     });
     $menuValueCheckboxes.empty();
