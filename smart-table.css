@@ -14,8 +14,8 @@
     right: 0.1em;
 }
 
-.smart-table__menu > * {
-    --bs-dropdown-min-width: 20em;
+.smart-table__menu .dropdown-menu {
+    width: 20em;
 }
 
 .smart-table__menu-value-checkboxes {
