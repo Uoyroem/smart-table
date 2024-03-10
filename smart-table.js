@@ -52,7 +52,7 @@ $.fn.smartTable = function (options) {
         } else {
           activeColumnFields.delete(field);
         }
-        const checkboxes = $(".smart-table__column-toggle-checkbox:checked");
+        const checkboxes = $(".smart-table__column-toggle-checkbox:checked", $settings);
         checkboxes.prop("disabled", checkboxes.length === 1);
 
         $(`.smart-table__cell[data-st-field="${field}"]`, $smartTable).toggleClass("active", checked);
