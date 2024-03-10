@@ -28,16 +28,42 @@ $.fn.smartTable = function (options) {
     </div>
   `);
   const $reloadButton = $(`
-    <button class="btn btn-sm smart-table__reload-button">
+    <button class="btn btn-sm smart-table__reload-button me-2">
       <i class="fa-solid fa-repeat"></i>
     </button>
   `); 
+  const $unload = $(`
+    <div class="dropdown smart-table__unload">
+      <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <i class="fa-solid fa-upload"></i>
+      </button>
+      <ul class="dropdown-menu smart-table__unload-types">
+      </ul>
+    </div>
+  `);
+
   const $toolsContainer = $(`
     <div class="d-flex mb-1">
     </div>
   `); 
   $toolsContainer.append($settings);
   $toolsContainer.append($reloadButton);
+  if (options.unload) {
+    const $unloadTypes = $(".smart-table__unload-types", $unload);
+    let index = 0;
+    for (const type of options.unload) {
+      $unloadTypes.append(`
+        <li>
+          <button class="dropdown-item btn btn-sm">${type.html}</button>
+        </li>
+      `);
+      $unloadTypes.last().first().on("click", async function() {
+        await type.onUnload(fieldValuesList, order);
+      });
+      index++;
+    }
+    $toolsContainer.append($unload);
+  }
   $smartTable.before($toolsContainer);
   const $columnToggleCheckboxes = $(".smart-table__column-toggle-checkboxes", $settings);
   $(".smart-table__reset-button", $settings).on("click", async function () {

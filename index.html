@@ -46,6 +46,14 @@
     <script>
         $("#some-table").smartTableWithVirtualScroll({
             defaultOrder: [{"field": "datetime", "sort": "desc"}],
+            unload: [
+                {
+                    html: `<i class="fa-solid fa-file-excel"></i> XLSX`,
+                    async onUnload(fieldValuesList, order) {
+                        console.log(123);
+                    }
+                }
+            ],
             lastRowTarget: "#last-row",
             rowsTarget: "#rows",
             getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-values",
