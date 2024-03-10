@@ -272,7 +272,9 @@ $.fn.smartTable = function (options) {
     order = JSON.parse(JSON.stringify(options.defaultOrder || []));
     $(".smart-table__th", $smartTable).data("sort", null);
     for (const fieldSort of order) {
-      $(`.smart-table__th[data-st-field="${fieldSort.field}"]`).data("sort", fieldSort.sort);
+      const th = $(`.smart-table__th[data-st-field="${fieldSort.field}"]`);
+      fieldSort["type"] = th.data("type") || "string";
+      th.data("sort", fieldSort.sort);
     }
   }
   resetOrder();
@@ -280,6 +282,7 @@ $.fn.smartTable = function (options) {
   const $menuButtonSortOrder = $(".smart-table__menu-sort-order", $menu);
   function changeOrder() {
     const field = $activeTh.data("stField");
+    const type = $activeTh.data("stType");
     const sort = $activeTh.data("newSort");
     const fieldSort = newOrder.find(fieldSort => fieldSort.field == field);
     let index = null;
@@ -295,6 +298,7 @@ $.fn.smartTable = function (options) {
       index = newOrder.length;
       newOrder.push({
         field,
+        type,
         sort
       });
     }
@@ -421,12 +425,15 @@ $.fn.smartTableWithVirtualScroll = function (options) {
           type,
           fieldValuesList,
         }),
+        headers: {
+          "X-CSRFToken": options.csrfToken
+        }
       });
       const data = await response.json();
       return data.values;
     },
     reset() {
-      this.next = options.getRowsUrl
+      this.next = options.getRowsUrl;
     },
     async getRows(fieldValuesList, order) {
       if (this.next) {
@@ -436,6 +443,9 @@ $.fn.smartTableWithVirtualScroll = function (options) {
             fieldValuesList,
             order
           }),
+          headers: {
+            "X-CSRFToken": options.csrfToken
+          }
         });
         const data = await response.json();
         this.next = data.next;
