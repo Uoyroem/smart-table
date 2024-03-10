@@ -6,7 +6,7 @@ $.fn.smartTable = function (options) {
   $("td, th", $smartTable).addClass("smart-table__cell active");
   $("thead th", $smartTable).addClass("smart-table__th");
   const $settings = $(`
-    <div class="dropdown smart-table__settings">
+    <div class="dropdown me-2 smart-table__settings">
       <button class="btn btn-sm" data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="fa-solid fa-gears"></i>
       </button>
@@ -27,7 +27,18 @@ $.fn.smartTable = function (options) {
       </ul>
     </div>
   `);
-  $smartTable.before($settings);
+  const $reloadButton = $(`
+    <button class="btn btn-sm smart-table__reload-button">
+      <i class="fa-solid fa-repeat"></i>
+    </button>
+  `); 
+  const $toolsContainer = $(`
+    <div class="d-flex mb-1">
+    </div>
+  `); 
+  $toolsContainer.append($settings);
+  $toolsContainer.append($reloadButton);
+  $smartTable.before($toolsContainer);
   const $columnToggleCheckboxes = $(".smart-table__column-toggle-checkboxes", $settings);
   $(".smart-table__reset-button", $settings).on("click", async function () {
     fieldValuesList = [];
@@ -60,7 +71,9 @@ $.fn.smartTable = function (options) {
       $columnToggleCheckboxes.append(checkbox);
     }
   });
-
+  $reloadButton.on("click", async function() {
+    await showRows();
+  });
   const $menu = $(`
     <div class="dropdown smart-table__menu fw-normal">
       <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" aria-expanded="false">
