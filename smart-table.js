@@ -98,7 +98,9 @@ $.fn.smartTable = function (options) {
     }
   });
   $reloadButton.on("click", async function() {
+    $(this).prop("disabled", true);
     await showRows();
+    $(this).prop("disabled", false);
   });
   const $menu = $(`
     <div class="dropdown smart-table__menu fw-normal">
