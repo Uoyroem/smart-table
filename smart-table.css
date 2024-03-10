@@ -24,6 +24,15 @@
 
 }
 
+.smart-table__column-toggle-checkboxes {
+    max-height: 10em;
+    overflow-y: scroll;
+}
+
+.smart-table__column-toggle-checkboxes::-webkit-scrollbar {
+    display: none;
+}
+
 .smart-table__menu.active {
     display: block;
 }
