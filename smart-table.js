@@ -80,7 +80,7 @@ $.fn.smartTable = function (options) {
       const checkbox = $(`
         <div class="form-check form-switch">
           <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}" checked>
-          <label class="form-check-label" for="${id}">${$(this).html()}</label>
+          <label class="form-check-label" for="${id}">${$(this).html().trim()}</label>
         </div>
       `).find(".smart-table__column-toggle-checkbox").on("change", function () {
         const checked = $(this).prop("checked");
