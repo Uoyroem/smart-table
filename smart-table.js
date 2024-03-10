@@ -92,7 +92,7 @@ $.fn.smartTable = function (options) {
               Сбросить
             </button>
             <div class="position-relative mb-2">
-              <input type="search" class="form-control smart-table__menu-value-search-input"/>
+              <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
               
                 
               <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
@@ -167,25 +167,34 @@ $.fn.smartTable = function (options) {
       </li>
     `);
     const field = $activeTh.data("stField");
-    const type = $activeTh.data("stType");
-    let values = await options.getValues(field, fieldValuesList);
-    values = Array.from(new Set(values)).map(function (value) {
+    let type = $activeTh.data("stType");
+    if (!type) {
+      $activeTh.data("stType", "string");
+      type = "string";
+    }
+    let values = await options.getValues(field, type, fieldValuesList);
+    values = Array.from(new Set(Array.from(values).map(function (value) {
       switch (type) {
         case "number":
           return parseFloat(value);
         case "date":
-          return new Date(new Date(value).toDateString());
+          const date = new Date(value);
+          return date.toISOString().slice(0, 10);
         default:
           return value;
       }
-    });
+    })));
     values.sort(function (a, b) {
+      if (a == null || b == null) {
+        return 0;
+      }
       switch (type) {
         case "number":
-        case "date":
           return a - b;
+        case "date":
+          return new Date(b) - new Date(a);
         default:
-          return options.collator ? options.collator.compare(a || '', b || '') : (a || '').toString().localeCompare((b || '').toString());
+          return options.collator ? options.collator.compare(a, b) : a.toString().localeCompare(b.toString());
       }
     });
     $menuValueCheckboxes.empty();
@@ -211,8 +220,6 @@ $.fn.smartTable = function (options) {
             formattedValue = options.numberFormat ? options.numberFormat.format(formattedValue) : formattedValue;
             break;
           case "date":
-            formattedValue = options.dateTimeFormat ? options.dateTimeFormat.format(formattedValue) : formattedValue.toLocaleDateString();
-            value = value.toDateString();
             break;
         }
         const id = `checkbox-${value}`;
@@ -322,6 +329,7 @@ $.fn.smartTable = function (options) {
     $activeTh.data("sort", $activeTh.data("newSort"));
     order = newOrder;
     const field = $activeTh.data("stField");
+    const type = $activeTh.data("stType");
     const matchedCheckboxes = $(".smart-table__menu-value-checkbox:checked", $menu);
     const unmatchedCheckboxes = $(".smart-table__menu-value-checkbox:not(:checked)", $menu);
     const fieldValues = fieldValuesList.find(fieldValues => fieldValues.field === field);
@@ -337,6 +345,7 @@ $.fn.smartTable = function (options) {
       } else {
         fieldValuesList.push({
           field,
+          type,
           include,
           exclude: []
         })
@@ -349,6 +358,7 @@ $.fn.smartTable = function (options) {
       } else {
         fieldValuesList.push({
           field,
+          type,
           include: [],
           exclude
         })
@@ -403,11 +413,12 @@ $.fn.smartTable = function (options) {
 
 $.fn.smartTableWithVirtualScroll = function (options) {
   this.smartTable({
-    async getValues(field, fieldValuesList) {
+    async getValues(field, type, fieldValuesList) {
       const response = await fetch(options.getValuesUrl, {
         method: "POST",
         body: JSON.stringify({
           field,
+          type,
           fieldValuesList,
         }),
       });
