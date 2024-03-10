@@ -121,7 +121,7 @@ $.fn.smartTable = function (options) {
   $smartTable.append($menu);
 
   let $activeTh = null;
-  $(`.smart-table__th`).mouseenter(function () {
+  $(`.smart-table__th`, $smartTable).mouseenter(function () {
     $menu.addClass("active");
     $menu.appendTo(this);
   }).mouseleave(function () {
