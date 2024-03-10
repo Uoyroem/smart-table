@@ -163,6 +163,9 @@ $.fn.smartTable = function (options) {
 
   let $activeTh = null;
   $(`.smart-table__th`, $smartTable).mouseenter(function () {
+    if (!$(this).data("stField")) {
+      return;
+    }
     $menu.addClass("active");
     $menu.appendTo(this);
   }).mouseleave(function () {
