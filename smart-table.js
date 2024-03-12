@@ -1,10 +1,50 @@
 
-
+let _smartTableCount = 0;
 $.fn.smartTable = function (options) {
   const $smartTable = this;
+  const smartTableId = `smart-table-${++_smartTableCount}`;
+  $smartTable.prop("id", smartTableId);
   $smartTable.addClass("smart-table");
-  $("td, th", $smartTable).addClass("smart-table__cell active");
-  $("thead th", $smartTable).addClass("smart-table__th");
+  function setValue(key, value) {
+    if (options.setValue) {
+      options.setValue(key, value);
+    } else {
+      localStorage.setItem(key, JSON.stringify(value));
+    }
+  }
+
+  function getValue(key) {
+    if (options.getValue) {
+      return options.getValue(key);
+    } else {
+      return JSON.parse(localStorage.getItem(key));
+    }
+  }
+  const $style = $("<style></style>").appendTo($smartTable);
+  const styleSheet = $style.prop("sheet");
+  const fields = [];
+  $(`thead th:not([data-st-field=""])`, $smartTable).each(function() {
+    const field = $(this).data("stField");
+    fields.push(field);
+    styleSheet.insertRule(`
+      #${smartTableId}:has( thead th[data-st-field="${field}"].active) tbody td:nth-child(${$(this).index() + 1}) {
+        display: table-cell;
+      }
+    `);
+  });
+
+  $("th", $smartTable).removeClass("active");
+  const activeColumnsKey = `${smartTableId}-activeColumns`;
+  let activeColumns = getValue(activeColumnsKey);
+  if (activeColumns) {
+    for (const activeColumn of activeColumns) {
+      $(`th[data-st-field="${activeColumn}"]`, $smartTable).addClass("active");
+    }
+  } else {
+    activeColumns = fields.slice();
+    $("th", $smartTable).addClass("active");
+    setValue(activeColumnsKey, activeColumns);
+  }
   const $settings = $(`
     <div class="dropdown me-2 smart-table__settings">
       <button class="btn btn-sm" data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -72,28 +112,31 @@ $.fn.smartTable = function (options) {
     await showRows();
     $settings.dropdown("hide");
   });
-  const activeColumnFields = new Set(Array.from($(`.smart-table__cell.active:not([data-st-field=""])`, this)).map(cell => $(cell).data("stField")));
+  
   $("th", $smartTable).each(function () {
     const field = $(this).data("stField");
     if (field) {
       const id = `${field}-toggle-checkbox`;
       const checkbox = $(`
         <div class="form-check form-switch">
-          <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}" checked>
+          <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}">
           <label class="form-check-label" for="${id}">${$(this).text().trim()}</label>
         </div>
       `).find(".smart-table__column-toggle-checkbox").on("change", function () {
         const checked = $(this).prop("checked");
-        if (checked) {
-          activeColumnFields.add(field);
-        } else {
-          activeColumnFields.delete(field);
-        }
         const checkboxes = $(".smart-table__column-toggle-checkbox:checked", $settings);
         checkboxes.prop("disabled", checkboxes.length === 1);
-
-        $(`.smart-table__cell[data-st-field="${field}"]`, $smartTable).toggleClass("active", checked);
+        if (checked) {
+          activeColumns.push(field);
+        } else {
+          activeColumns.splice(activeColumns.indexOf(field), 1);
+        }
+        setValue(activeColumnsKey, activeColumns);
+        $(`thead th[data-st-field="${field}"]`, $smartTable).toggleClass("active", checked);
       }).end();
+      if (activeColumns.includes(field)) {
+        checkbox.find("input").prop("checked", true);
+      }
       $columnToggleCheckboxes.append(checkbox);
     }
   });
@@ -162,7 +205,7 @@ $.fn.smartTable = function (options) {
   $smartTable.append($menu);
 
   let $activeTh = null;
-  $(`.smart-table__th`, $smartTable).mouseenter(function () {
+  $(`thead th`, $smartTable).mouseenter(function () {
     if (!$(this).data("stField")) {
       return;
     }
@@ -204,7 +247,7 @@ $.fn.smartTable = function (options) {
   const $menuValueCheckboxes = $(".smart-table__menu-value-checkboxes", $menu);
   let fieldValuesList = [];
   $menu.on("shown.bs.dropdown", async function () {
-    $activeTh = $(this).closest(".smart-table__th");
+    $activeTh = $(this).closest("th");
     newOrder = JSON.parse(JSON.stringify(order));
     $menuSearchInput.val($activeTh.data("search-query"));
     $activeTh.data("newSort", $activeTh.data("sort"));
@@ -317,9 +360,9 @@ $.fn.smartTable = function (options) {
   let order;
   function resetOrder() {
     order = JSON.parse(JSON.stringify(options.defaultOrder || []));
-    $(".smart-table__th", $smartTable).data("sort", null);
+    $("thead th", $smartTable).data("sort", null);
     for (const fieldSort of order) {
-      const th = $(`.smart-table__th[data-st-field="${fieldSort.field}"]`);
+      const th = $(`thead th[data-st-field="${fieldSort.field}"]`);
       fieldSort["type"] = getType(th);
       th.data("sort", fieldSort.sort);
     }

@@ -37,15 +37,15 @@
     display: block;
 }
 
-.smart-table__cell {
+.smart-table :where(td, th) {
     display: none;
 }
 
-.smart-table__cell.active {
+.smart-table th.active {
     display: table-cell;
 }
 
-.smart-table__th {
+.smart-table th {
     position: relative;
 }
 

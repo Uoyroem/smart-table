@@ -56,8 +56,8 @@
             ],
             lastRowTarget: "#last-row",
             rowsTarget: "#rows",
-            getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/unpaid-invoices-get-values",
-            getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/unpaid-invoices-get-rows",
+            getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-values",
+            getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-rows",
             loadingHtml: `
                 <tr>
                     <td class="text-center" colspan="5">
@@ -68,14 +68,13 @@
                 </tr>
             `,
             getTr(row) {
-                console.log(row);
                 return `
                     <tr>
-                        <td class="smart-table__cell active" data-st-field="project_region__name">${row.project_region.name}</td>
-                        <td class="smart-table__cell active" data-st-field="mandatory_payment__name">${row.mandatory_payment.name}</td>
-                        <td class="smart-table__cell active" data-st-field="account__name">${row.account ? row.account.name : ""}</td>
-                        <td class="smart-table__cell active" data-st-field="sum">${row.sum}</td>
-                        <td class="smart-table__cell active" data-st-field="datetime">${row.datetime}</td>
+                        <td>${row.project_region.name}</td>
+                        <td>${row.mandatory_payment.name}</td>
+                        <td>${row.account ? row.account.name : ""}</td>
+                        <td>${row.sum}</td>
+                        <td>${row.datetime}</td>
                     </tr>
                 `;
             }
