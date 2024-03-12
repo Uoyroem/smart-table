@@ -64,7 +64,7 @@ $.fn.smartTable = function (options) {
               Показать или скрыть столбцы
             </button>
             <ul class="dropdown-menu">
-              <div class="smart-table__column-toggle-checkboxes mx-3"></div>
+              <div class="smart-table__column-toggle-checkboxes mx-1 px-1"></div>
             </ul>
           </div>
         </li>
