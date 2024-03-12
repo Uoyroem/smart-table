@@ -366,7 +366,10 @@ $.fn.smartTable = function (options) {
         } catch (error) {
           console.error(error)
         }
-        subtotalTh.html(formatValue(subtotalResult, type));
+        if (subtotal == 9) {
+          subtotalResult = formatValue(subtotalResult, type);
+        } 
+        subtotalTh.html(subtotalResult);
       }
     });
   }
