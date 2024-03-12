@@ -1,9 +1,8 @@
 
-let _smartTableCount = 0;
 $.fn.smartTable = function (options) {
   const $smartTable = this;
-  const smartTableId = `smart-table-${++_smartTableCount}`;
-  $smartTable.prop("id", smartTableId);
+  const smartTableId = `smart-table-${options.name}`;
+  $smartTable.addClass(smartTableId);
   $smartTable.addClass("smart-table");
   function setValue(key, value) {
     if (options.setValue) {
@@ -27,7 +26,7 @@ $.fn.smartTable = function (options) {
     const field = $(this).data("stField");
     fields.push(field);
     styleSheet.insertRule(`
-      #${smartTableId}:has( thead th[data-st-field="${field}"].active) tbody td:nth-child(${$(this).index() + 1}) {
+      .${smartTableId}:has( thead th[data-st-field="${field}"].active) tbody td:nth-child(${$(this).index() + 1}) {
         display: table-cell;
       }
     `);
