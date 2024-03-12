@@ -288,7 +288,7 @@ $.fn.smartTable = function (options) {
     });
     $menuValueCheckboxes.empty();
     for (let value of values) {
-      if (!value) {
+      if (value == null) {
         if ($menuValueCheckboxes.find(`.smart-table__menu-value-checkbox[value=""]`).length !== 0) {
           continue;
         }
