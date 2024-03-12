@@ -20,6 +20,13 @@
         <table id="some-table" class="table table-bordered">
             <thead>
                 <tr>
+                    <th data-st-subtotal="2">0</th>
+                    <th data-st-subtotal="2">0</th>
+                    <th data-st-subtotal="2">0</th>
+                    <th data-st-subtotal="9">0</th>
+                    <th data-st-subtotal="2">0</th>
+                </tr>
+                <tr>
                     <th data-st-field="project_region__name" data-st-type="string">ПМ</th>
                     <th data-st-field="mandatory_payment__name">Статья</th>
                     <th data-st-field="account__name">р/с</th>
@@ -46,6 +53,7 @@
     <script>
         $("#some-table").smartTableWithVirtualScroll({
             name: "mandatory-payment-seizure",
+            activeColumns: [],
             defaultOrder: [{"field": "datetime", "sort": "desc"}],
             unload: [
                 {
@@ -59,6 +67,7 @@
             rowsTarget: "#rows",
             getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-values",
             getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-rows",
+            getSubtotalUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-subtotal",
             loadingHtml: `
                 <tr>
                     <td class="text-center" colspan="5">

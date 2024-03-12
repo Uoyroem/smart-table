@@ -1,5 +1,9 @@
 
 $.fn.smartTable = function (options) {
+  const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
+    maximumFractionDigits: 2,
+    minimumFractionDigits: 2
+  });
   const $smartTable = this;
   const smartTableId = `smart-table-${options.name}`;
   $smartTable.addClass(smartTableId);
@@ -22,11 +26,12 @@ $.fn.smartTable = function (options) {
   const $style = $("<style></style>").appendTo($smartTable);
   const styleSheet = $style.prop("sheet");
   const fields = [];
-  $(`thead th:not([data-st-field=""])`, $smartTable).each(function() {
+  const $ths = $(`thead th[data-st-field]:not([data-st-field=""])`, $smartTable);
+  $ths.each(function() {
     const field = $(this).data("stField");
     fields.push(field);
     styleSheet.insertRule(`
-      .${smartTableId}:has( thead th[data-st-field="${field}"].active) tbody td:nth-child(${$(this).index() + 1}) {
+      .${smartTableId}:has( thead th[data-st-field="${field}"].active) :where(th:not([data-st-field="${field}"]), td):nth-child(${$(this).index() + 1}) {
         display: table-cell;
       }
     `);
@@ -236,10 +241,10 @@ $.fn.smartTable = function (options) {
     showSearchQueryResults();
   });
   function getType(th) {
-    let type = th.data("stType");
+    let type = $(th).data("stType");
     if (!type) {
       type = "string";
-      th.data("stType", type);
+      $(th).data("stType", type);
     }
     return type;
   }
@@ -303,14 +308,7 @@ $.fn.smartTable = function (options) {
           </li>
         `);
       } else {
-        let formattedValue = value;
-        switch (type) {
-          case "number":
-            formattedValue = options.numberFormat ? options.numberFormat.format(formattedValue) : formattedValue;
-            break;
-          case "date":
-            break;
-        }
+        let formattedValue = formatValue(value);
         const id = `checkbox-${value}`;
         $menuValueCheckboxes.append(`
           <li class="list-group-item">
@@ -344,6 +342,34 @@ $.fn.smartTable = function (options) {
     newOrder = null;
     $activeTh = null;
   });
+
+  function formatValue(value, type) {
+    switch (type) {
+      case "number":
+        return (options.numberFormat || defaultNumberFormat).format(parseFloat(value) || 0);
+      default:
+        return value;
+    }
+  }
+
+  function updateSubtotals() {
+    $ths.each(async function() {
+      const field = $(this).data("stField");
+      const type = getType(this);
+      const subtotalTh = $(`thead th[data-st-subtotal]:nth-child(${$(this).index() + 1})`);
+      if (subtotalTh.length !== 0) {
+        const subtotal = subtotalTh.data("stSubtotal");
+        let subtotalResult = null;
+        
+        try {
+          subtotalResult = await options.getSubtotal(field, type, subtotal, fieldValuesList);
+        } catch (error) {
+          console.error(error)
+        }
+        subtotalTh.html(formatValue(subtotalResult, type));
+      }
+    });
+  }
 
   const $menuButtonSortIcon = $(".smart-table__menu-sort-button-icon", $menu);
   function changeSortIcon() {
@@ -416,6 +442,7 @@ $.fn.smartTable = function (options) {
     } catch (error) {
       console.error(error);
     }
+    updateSubtotals();
   }
 
   $(".submit-button", $menu).on("click", async function () {
@@ -537,6 +564,22 @@ $.fn.smartTableWithVirtualScroll = function (options) {
       this.reset();
       await this.insertRows(fieldValuesList, order);
       observer.observe($(options.lastRowTarget)[0]);
+    },
+    async getSubtotal(field, type, subtotal, fieldValuesList) {
+      const response = await fetch(this.getSubtotalUrl, {
+        method: "POST",
+        body: JSON.stringify({
+          fieldValuesList,
+          field,
+          type,
+          subtotal
+        }),
+        headers: {
+          "X-CSRFToken": options.csrfToken
+        }
+      });
+      const data = await response.json();
+      return data.subtotalResult;
     },
     ...options
   });
