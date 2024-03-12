@@ -308,7 +308,7 @@ $.fn.smartTable = function (options) {
           </li>
         `);
       } else {
-        let formattedValue = formatValue(value);
+        let formattedValue = formatValue(value, type);
         const id = `checkbox-${value}`;
         $menuValueCheckboxes.append(`
           <li class="list-group-item">
