@@ -356,7 +356,7 @@ $.fn.smartTable = function (options) {
     $ths.each(async function() {
       const field = $(this).data("stField");
       const type = getType(this);
-      const subtotalTh = $(`thead th[data-st-subtotal]:nth-child(${$(this).index() + 1})`);
+      const subtotalTh = $(`thead th[data-st-subtotal]:nth-child(${$(this).index() + 1})`, $smartTable);
       if (subtotalTh.length !== 0) {
         const subtotal = subtotalTh.data("stSubtotal");
         let subtotalResult = null;
