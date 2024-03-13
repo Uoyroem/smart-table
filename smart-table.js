@@ -43,7 +43,6 @@ $.fn.smartTable = function (options) {
   const activeColumnsKey = `${smartTableId}-activeColumns`;
   let activeColumns = getValue(activeColumnsKey);
   if (activeColumns) {
-    console.log(activeColumns);
     for (const [index, field] of Object.entries(activeColumns)) {
       $(
         `th[data-st-field="${field}"]:nth-child(${parseInt(index) + 1})`,
@@ -55,7 +54,6 @@ $.fn.smartTable = function (options) {
       (activeColumns, field, index) => (activeColumns[index] = field, activeColumns),
       {}
     );
-    console.log(activeColumns);
     $("th", $smartTable).addClass("active");
     setValue(activeColumnsKey, activeColumns);
   }
