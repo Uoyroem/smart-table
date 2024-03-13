@@ -119,6 +119,7 @@ $.fn.smartTable = function (options) {
   
   $("th", $smartTable).each(function () {
     const field = $(this).data("stField");
+    const $th = $(this);
     if (field) {
       const id = `${field}-toggle-checkbox`;
       const checkbox = $(`
@@ -136,7 +137,7 @@ $.fn.smartTable = function (options) {
           activeColumns.splice(activeColumns.indexOf(field), 1);
         }
         setValue(activeColumnsKey, activeColumns);
-        $(`thead th[data-st-field="${field}"]`, $smartTable).toggleClass("active", checked);
+        $th.toggleClass("active", checked);
       }).end();
       if (activeColumns.includes(field)) {
         checkbox.find("input").prop("checked", true);
