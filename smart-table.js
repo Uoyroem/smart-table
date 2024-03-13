@@ -31,7 +31,7 @@ $.fn.smartTable = function (options) {
     const field = $(this).data("stField");
     fields.push(field);
     styleSheet.insertRule(`
-      .${smartTableId}:has( thead th[data-st-field="${field}"].active) :where(th:not([data-st-field="${field}"]), td):nth-child(${$(this).index() + 1}) {
+      .${smartTableId}:has( thead th[data-st-field="${field}"]:nth-child(${$(this).index() + 1}).active) :where(th:not([data-st-field="${field}"]), td):nth-child(${$(this).index() + 1}) {
         display: table-cell;
       }
     `);
