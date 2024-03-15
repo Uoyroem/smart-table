@@ -51,7 +51,9 @@ $.fn.smartTable = function (options) {
     }
   } else {
     activeColumns = fields.reduce(
-      (activeColumns, field, index) => (activeColumns[index] = field, activeColumns),
+      (activeColumns, field, index) => (
+        (activeColumns[index] = field), activeColumns
+      ),
       {}
     );
     $("th", $smartTable).addClass("active");
@@ -174,7 +176,7 @@ $.fn.smartTable = function (options) {
   });
   const $menu = $(`
     <div class="dropdown smart-table__menu fw-normal">
-      <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" data-bs-auto-close="false" aria-expanded="false">
+      <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
         <i class="fa-solid fa-caret-down"></i>
       </button>
       <ul class="dropdown-menu">
@@ -232,18 +234,14 @@ $.fn.smartTable = function (options) {
   $smartTable.append($menu);
 
   let $activeTh = null;
-  $(`thead th`, $smartTable)
-    .mouseenter(function () {
-      if (!$(this).data("stField")) {
-        return;
-      }
-      $menu.addClass("active");
-      $menu.appendTo(this);
-    })
-    .mouseleave(function () {
-      $menu.removeClass("active");
-      $menu.dropdown("hide");
-    });
+  let menuActive = false;
+  $(`thead th`, $smartTable).mouseenter(function () {
+    if (menuActive || !$(this).data("stField")) {
+      return;
+    }
+    $menu.addClass("active");
+    $menu.appendTo(this);
+  });
 
   const $menuSearchInput = $(".smart-table__menu-value-search-input", $menu);
   function getSearchQueryValueCheckboxes(shouldMatchSearchQuery = true) {
@@ -284,6 +282,7 @@ $.fn.smartTable = function (options) {
   const $menuValueCheckboxes = $(".smart-table__menu-value-checkboxes", $menu);
   let fieldValuesList = [];
   $menu.on("shown.bs.dropdown", async function () {
+    menuActive = true;
     $activeTh = $(this).closest("th");
     newOrder = JSON.parse(JSON.stringify(order));
     $menuSearchInput.val($activeTh.data("search-query"));
@@ -387,6 +386,8 @@ $.fn.smartTable = function (options) {
   });
 
   $menu.on("hidden.bs.dropdown", function () {
+    menuActive = false;
+    $menu.removeClass("active");
     $menuValueCheckboxes.empty();
     $activeTh.data("newSort", null);
     newOrder = null;
@@ -517,6 +518,7 @@ $.fn.smartTable = function (options) {
       ".smart-table__menu-value-checkbox:checked",
       $menu
     );
+    $menu.dropdown("hide");
     const unmatchedCheckboxes = $(
       ".smart-table__menu-value-checkbox:not(:checked)",
       $menu
@@ -560,7 +562,6 @@ $.fn.smartTable = function (options) {
       }
     }
     await showRows();
-    $menu.dropdown("hide");
   });
 
   $(".smart-table__menu-value-check-all").on("click", function () {
