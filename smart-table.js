@@ -241,6 +241,10 @@ $.fn.smartTable = function (options) {
     }
     $menu.addClass("active");
     $menu.appendTo(this);
+  }).mouseleave(function() {
+    if (!menuActive) {
+      $menu.removeClass("active");
+    }
   });
 
   const $menuSearchInput = $(".smart-table__menu-value-search-input", $menu);
