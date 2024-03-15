@@ -522,7 +522,6 @@ $.fn.smartTable = function (options) {
       ".smart-table__menu-value-checkbox:checked",
       $menu
     );
-    $menu.dropdown("hide");
     const unmatchedCheckboxes = $(
       ".smart-table__menu-value-checkbox:not(:checked)",
       $menu
@@ -566,6 +565,7 @@ $.fn.smartTable = function (options) {
       }
     }
     await showRows();
+    $menu.dropdown("hide");
   });
 
   $(".smart-table__menu-value-check-all").on("click", function () {
