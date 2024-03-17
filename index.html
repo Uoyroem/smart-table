@@ -20,6 +20,7 @@
         <table id="some-table" class="table table-bordered">
             <thead>
                 <tr>
+                    <th class="smart-table__always-shown"></th>
                     <th data-st-subtotal="2">0</th>
                     <th data-st-subtotal="2">0</th>
                     <th data-st-subtotal="2">0</th>
@@ -27,6 +28,7 @@
                     <th data-st-subtotal="2">0</th>
                 </tr>
                 <tr>
+                    <th class="smart-table__always-shown"></th>
                     <th data-st-field="project_region__name" data-st-type="string">ПМ</th>
                     <th data-st-field="mandatory_payment__name">Статья</th>
                     <th data-st-field="account__name">р/с</th>
@@ -80,6 +82,7 @@
             getTr(row) {
                 return `
                     <tr>
+                        <td class="smart-table__always-shown">123</td>
                         <td>${row.project_region.name}</td>
                         <td>${row.mandatory_payment.name}</td>
                         <td>${row.account ? row.account.name : ""}</td>

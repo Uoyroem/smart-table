@@ -32,7 +32,7 @@
     display: block;
 }
 
-.smart-table :where(td, th) {
+.smart-table :where(td, th):not(.smart-table__always-shown) {
     display: none;
 }
 
