@@ -32,15 +32,15 @@
     display: block;
 }
 
-.smart-table :not(table) :where(td, th):not(.smart-table__always-shown) {
+.smart-table > :where(thead, tbody, tfoot) > tr > :where(td, th):not(.smart-table__always-shown) {
     display: none;
 }
 
-.smart-table :not(table) th.active {
+.smart-table > :where(thead, tbody, tfoot) > tr > th.active {
     display: table-cell;
 }
 
-.smart-table :not(table) th {
+.smart-table > thead > tr > th[data-st-field]:not([data-st-field=""]) {
     position: relative;
 }
 
