@@ -32,15 +32,15 @@
     display: block;
 }
 
-.smart-table :where(td, th):not(.smart-table__always-shown) {
+.smart-table :not(table) :where(td, th):not(.smart-table__always-shown) {
     display: none;
 }
 
-.smart-table th.active {
+.smart-table :not(table) th.active {
     display: table-cell;
 }
 
-.smart-table th {
+.smart-table :not(table) th {
     position: relative;
 }
 
