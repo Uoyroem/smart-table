@@ -50,12 +50,7 @@ $.fn.smartTable = function (options) {
       ).addClass("active");
     }
   } else {
-    activeColumns = fields.reduce(
-      (activeColumns, field, index) => (
-        (activeColumns[index] = field), activeColumns
-      ),
-      {}
-    );
+    activeColumns = Array.from($ths).reduce((activeColumns, th) => (activeColumns[$(th).index()] = $(th).data("stField"), activeColumns), {});
     $ths.addClass("active");
     setValue(activeColumnsKey, activeColumns);
   }
