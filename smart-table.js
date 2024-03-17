@@ -39,7 +39,7 @@ $.fn.smartTable = function (options) {
     `);
   });
 
-  $("th", $smartTable).removeClass("active");
+  $ths.removeClass("active");
   const activeColumnsKey = `${smartTableId}-activeColumns`;
   let activeColumns = getValue(activeColumnsKey);
   if (activeColumns) {
@@ -56,7 +56,7 @@ $.fn.smartTable = function (options) {
       ),
       {}
     );
-    $("th", $smartTable).addClass("active");
+    $ths.addClass("active");
     setValue(activeColumnsKey, activeColumns);
   }
   const $settings = $(`
