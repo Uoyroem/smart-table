@@ -123,11 +123,10 @@ $.fn.smartTable = function (options) {
           });
           const blob = await response.blob();
           console.log(response, blob);
-          const $a = $("<a></a>");
-          $a.prop("url", URL.createObjectURL(blob));
-          $a.prop("download", true);
-          $a.appendTo(document.body);
+          const objectUrl = URL.createObjectURL(blob);
+          const $a = $(`<a href="${objectUrl}" download></a>`).appendTo(document.body);
           $a.click();
+          URL.revokeObjectURL(objectUrl);
         });
       index++;
     }
