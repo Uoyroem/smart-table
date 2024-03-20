@@ -128,7 +128,7 @@ $.fn.smartTable = function (options) {
           document.body.appendChild(a);
           a.href = objectUrl;
           const contentDisposition = response.headers.get("Content-Disposition");
-          a.download = contentDisposition.match(/filename="(.+)"/)[1];
+          a.download = contentDisposition.split("'")[2];
           a.click();
           a.remove();
           URL.revokeObjectURL(objectUrl);
