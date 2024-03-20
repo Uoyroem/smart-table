@@ -110,7 +110,13 @@ $.fn.smartTable = function (options) {
         .last()
         .first()
         .on("click", async function () {
-          const response = fetch(`${options.unloadUrl}?type=${unloadType.type}`, {
+          const response = fetch(options.unloadUrl, {
+            method: "POST",
+            body: JSON.stringify({
+              order,
+              fieldValuesList,
+              type: unloadType.type
+            }),
             headers: {
               "X-CSRFToken": options.csrfToken
             }
