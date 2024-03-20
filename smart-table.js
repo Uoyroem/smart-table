@@ -124,9 +124,13 @@ $.fn.smartTable = function (options) {
           const blob = await response.blob();
           console.log(response, blob);
           const objectUrl = URL.createObjectURL(blob);
-          const $a = $(`<a href="${objectUrl}" download="hello.xlsx"></a>`).appendTo(document.body);
-          $a.click();
-
+          const a = document.createElement("a");
+          a.appendChild(document);
+          a.href = objectUrl;
+          a.download = "unload.xlsx";
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(objectUrl);
         });
       index++;
     }
