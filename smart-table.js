@@ -127,7 +127,8 @@ $.fn.smartTable = function (options) {
           const a = document.createElement("a");
           document.body.appendChild(a);
           a.href = objectUrl;
-          a.download = "unload.xlsx";
+          const contentDisposition = response.headers.get("Content-Disposition");
+          a.download = contentDisposition.match(/filename="(.+)"/)[1];
           a.click();
           a.remove();
           URL.revokeObjectURL(objectUrl);
