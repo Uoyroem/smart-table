@@ -1,3 +1,15 @@
+function getFilename(response) {
+  const contentDisposition = response.headers.get('Content-Disposition');
+  filename = contentDisposition.split(/;(.+)/)[1].split(/=(.+)/)[1];
+  if (filename.toLowerCase().startsWith("utf-8''")) {
+    filename = decodeURIComponent(filename.replace(/utf-8''/i, ''));
+  }
+  else {
+    filename = filename.replace(/['"]/g, '');
+  }
+  return filename;
+} 
+
 $.fn.smartTable = function (options) {
   const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 2,
@@ -127,8 +139,8 @@ $.fn.smartTable = function (options) {
           const a = document.createElement("a");
           document.body.appendChild(a);
           a.href = objectUrl;
-          const contentDisposition = response.headers.get("Content-Disposition");
-          a.download = contentDisposition.split("'")[2];
+          
+          a.download = getFilename(response);
           a.click();
           a.remove();
           URL.revokeObjectURL(objectUrl);
@@ -158,8 +170,8 @@ $.fn.smartTable = function (options) {
         <div class="form-check form-switch">
           <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}">
           <label class="form-check-label" for="${id}">${$(this)
-        .text()
-        .trim()}</label>
+          .text()
+          .trim()}</label>
         </div>
       `)
         .find(".smart-table__column-toggle-checkbox")
@@ -257,7 +269,7 @@ $.fn.smartTable = function (options) {
     }
     $menu.addClass("active");
     $menu.appendTo(this);
-  }).mouseleave(function() {
+  }).mouseleave(function () {
     if (!menuActive) {
       $menu.removeClass("active");
     }
