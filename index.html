@@ -57,12 +57,10 @@
             name: "mandatory-payment-seizure",
             activeColumns: [],
             defaultOrder: [{"field": "datetime", "sort": "desc"}],
-            unload: [
+            unloadTypes: [
                 {
-                    html: `<i class="fa-solid fa-file-excel"></i> XLSX`,
-                    async onUnload(fieldValuesList, order) {
-                        console.log(123);
-                    }
+                    type: "just-excel",
+                    html: `<i class="fa-solid fa-file-excel"></i> XLSX`
                 }
             ],
             lastRowTarget: "#last-row",
@@ -70,6 +68,7 @@
             getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-values",
             getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-rows",
             getSubtotalUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-subtotal",
+            unloadUrl: "1123",
             loadingHtml: `
                 <tr>
                     <td class="text-center" colspan="5">

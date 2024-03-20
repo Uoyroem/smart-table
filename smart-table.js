@@ -97,20 +97,25 @@ $.fn.smartTable = function (options) {
   `);
   $toolsContainer.append($settings);
   $toolsContainer.append($reloadButton);
-  if (options.unload) {
+  if (options.unloadTypes && options.unloadUrl) {
     const $unloadTypes = $(".smart-table__unload-types", $unload);
     let index = 0;
-    for (const type of options.unload) {
+    for (const unloadType of options.unloadTypes) {
       $unloadTypes.append(`
         <li>
-          <button class="dropdown-item btn btn-sm">${type.html}</button>
+          <button class="dropdown-item btn btn-sm">${unloadType.html}</button>
         </li>
       `);
       $unloadTypes
         .last()
         .first()
         .on("click", async function () {
-          await type.onUnload(fieldValuesList, order);
+          const response = fetch(`${options.unloadUrl}?type=${unloadType.type}`, {
+            headers: {
+              "X-CSRFToken": options.csrfToken
+            }
+          });
+
         });
       index++;
     }
