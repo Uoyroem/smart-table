@@ -122,6 +122,7 @@ $.fn.smartTable = function (options) {
             }
           });
           const blob = await response.blob();
+          console.log(response, blob);
           const $a = $("<a></a>");
           $a.prop("url", URL.createObjectURL(blob));
           $a.prop("download", true);
