@@ -110,7 +110,7 @@ $.fn.smartTable = function (options) {
         .last()
         .first()
         .on("click", async function () {
-          const response = fetch(options.unloadUrl, {
+          const response = await fetch(options.unloadUrl, {
             method: "POST",
             body: JSON.stringify({
               order,
@@ -121,7 +121,12 @@ $.fn.smartTable = function (options) {
               "X-CSRFToken": options.csrfToken
             }
           });
-
+          const blob = await response.blob();
+          const $a = $("<a></a>");
+          $a.prop("url", URL.createObjectURL(blob));
+          $a.prop("download", true);
+          $a.appendTo(document.body);
+          $a.click();
         });
       index++;
     }
