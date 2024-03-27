@@ -24,6 +24,10 @@
     updateSubtotals();
   }
 
+  $.fn.smartTableReload = function() {
+    $(this).find(".smart-table__reload-button").click();
+  }
+
   $.fn.smartTable = function (options) {  
     const $smartTable = this;
     $smartTable.data("updateSubtotals", updateSubtotals);
