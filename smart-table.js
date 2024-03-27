@@ -199,7 +199,7 @@ $.fn.smartTable = function (options) {
   });
   $reloadButton.on("click", async function () {
     $(this).prop("disabled", true);
-    await showRows();
+    await showRows(true);
     $(this).prop("disabled", false);
   });
   const $menu = $(`
@@ -532,9 +532,9 @@ $.fn.smartTable = function (options) {
     $menu.dropdown("hide");
   });
 
-  async function showRows() {
+  async function showRows(forceReset = false) {
     try {
-      await options.showRows(fieldValuesList, order);
+      await options.showRows(fieldValuesList, order, forceReset);
     } catch (error) {
       console.error(error);
     }
