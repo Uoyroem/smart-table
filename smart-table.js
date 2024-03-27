@@ -603,7 +603,7 @@ $.fn.smartTable = function (options) {
   $(".smart-table__menu-value-uncheck-all").on("click", function () {
     getSearchQueryValueCheckboxes().prop("checked", false);
   });
-  showRows();
+  showRows(true);
 };
 
 $.fn.smartTableWithVirtualScroll = function (options) {
