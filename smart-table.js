@@ -17,20 +17,21 @@
   } 
   
   $.fn.smartTableUpdateSubtotals = function() {
-    const updateSubtotals = $(this).data("updateSubtotals");
-    if (!updateSubtotals || typeof updateSubtotals !== "function") {
-      return;
-    }
-    updateSubtotals();
+    $(this).trigger("st.reload.subtotals");
   }
 
   $.fn.smartTableReload = function() {
-    $(this).find(".smart-table__reload-button").click();
+    $(this).trigger("st.reload.rows");
   }
 
   $.fn.smartTable = function (options) {  
     const $smartTable = this;
-    $smartTable.data("updateSubtotals", updateSubtotals);
+    $smartTable.on("st.reload.rows", async function() {
+      await showRows(true);
+    });
+    $smartTable.on("st.reload.subtotals", function() {
+      updateSubtotals();
+    });
     const smartTableId = `smart-table-${options.name}`;
     $smartTable.addClass(smartTableId);
     $smartTable.addClass("smart-table");
