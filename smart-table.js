@@ -546,6 +546,7 @@
     async function showRows(forceReset = false) {
       try {
         await options.showRows(fieldValuesList, order, forceReset);
+        $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);
       }
