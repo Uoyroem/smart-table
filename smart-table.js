@@ -435,11 +435,12 @@
   
     $menu.on("hidden.bs.dropdown", function () {
       menuActive = false;
-      $menu.removeClass("active");
       $menuValueCheckboxes.empty();
-      $activeTh.data("newSort", null);
       newOrder = null;
-      $activeTh = null;
+      if ($activeTh) {
+        $activeTh.data("newSort", null);
+        $activeTh = null;
+      }
     });
   
     function formatValue(value, type) {
