@@ -410,11 +410,11 @@
           `);
         } else {
           let formattedValue = formatValue(value, type);
-          const id = `checkbox-${`${value}`.replace('"', "'")}`;
+          const id = `checkbox-${`${value}`.replace(/"/g, "'")}`;
           $menuValueCheckboxes.append(`
             <li class="list-group-item">
               <div class="form-check">
-                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${`${value}`.replace('"', "'")}" id="${id}" checked>
+                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${`${value}`.replace(/"/g, "'")}" id="${id}" checked>
                 <label class="form-check-label" for="${id}">
                   ${formattedValue}
                 </label>
