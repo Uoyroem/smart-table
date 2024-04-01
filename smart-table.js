@@ -1,35 +1,34 @@
-(function() {
+(function () {
   const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
   });
 
   function getFilename(response) {
-    const contentDisposition = response.headers.get('Content-Disposition');
+    const contentDisposition = response.headers.get("Content-Disposition");
     filename = contentDisposition.split(/;(.+)/)[1].split(/=(.+)/)[1];
     if (filename.toLowerCase().startsWith("utf-8''")) {
-      filename = decodeURIComponent(filename.replace(/utf-8''/i, ''));
-    }
-    else {
-      filename = filename.replace(/['"]/g, '');
+      filename = decodeURIComponent(filename.replace(/utf-8''/i, ""));
+    } else {
+      filename = filename.replace(/['"]/g, "");
     }
     return filename;
-  } 
-  
-  $.fn.smartTableUpdateSubtotals = function() {
+  }
+
+  $.fn.smartTableUpdateSubtotals = function () {
     $(this).trigger("st.reload.subtotals");
-  }
+  };
 
-  $.fn.smartTableReload = function() {
+  $.fn.smartTableReload = function () {
     $(this).trigger("st.reload.rows");
-  }
+  };
 
-  $.fn.smartTable = function (options) {  
+  $.fn.smartTable = function (options) {
     const $smartTable = this;
-    $smartTable.on("st.reload.rows", async function() {
+    $smartTable.on("st.reload.rows", async function () {
       await showRows(true);
     });
-    $smartTable.on("st.reload.subtotals", function() {
+    $smartTable.on("st.reload.subtotals", function () {
       updateSubtotals();
     });
     const smartTableId = `smart-table-${options.name}`;
@@ -42,7 +41,7 @@
         localStorage.setItem(key, JSON.stringify(value));
       }
     }
-  
+
     function getValue(key) {
       if (options.getValue) {
         return options.getValue(key);
@@ -66,7 +65,7 @@
         }
       `);
     });
-  
+
     $ths.removeClass("active");
     const activeColumnsKey = `${smartTableId}-activeColumns`;
     let activeColumns = getValue(activeColumnsKey);
@@ -78,7 +77,12 @@
         ).addClass("active");
       }
     } else {
-      activeColumns = Array.from($ths).reduce((activeColumns, th) => (activeColumns[$(th).index()] = $(th).data("stField"), activeColumns), {});
+      activeColumns = Array.from($ths).reduce(
+        (activeColumns, th) => (
+          (activeColumns[$(th).index()] = $(th).data("stField")), activeColumns
+        ),
+        {}
+      );
       $ths.addClass("active");
       setValue(activeColumnsKey, activeColumns);
     }
@@ -118,7 +122,7 @@
         </ul>
       </div>
     `);
-  
+
     const $toolsContainer = $(`
       <div class="d-flex mb-1">
       </div>
@@ -143,11 +147,11 @@
               body: JSON.stringify({
                 order,
                 fieldValuesList,
-                type: unloadType.type
+                type: unloadType.type,
               }),
               headers: {
-                "X-CSRFToken": options.csrfToken
-              }
+                "X-CSRFToken": options.csrfToken,
+              },
             });
             const blob = await response.blob();
             console.log(response, blob);
@@ -155,7 +159,7 @@
             const a = document.createElement("a");
             document.body.appendChild(a);
             a.href = objectUrl;
-            
+
             a.download = getFilename(response);
             a.click();
             a.remove();
@@ -176,7 +180,7 @@
       await showRows();
       $settings.dropdown("hide");
     });
-  
+
     $("th", $smartTable).each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
@@ -186,8 +190,8 @@
           <div class="form-check form-switch">
             <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}">
             <label class="form-check-label" for="${id}">${$(this)
-            .text()
-            .trim()}</label>
+          .text()
+          .trim()}</label>
           </div>
         `)
           .find(".smart-table__column-toggle-checkbox")
@@ -276,21 +280,23 @@
       </div>
     `);
     $smartTable.append($menu);
-  
+
     let $activeTh = null;
     let menuActive = false;
-    $(`thead th`, $smartTable).mouseenter(function () {
-      if (menuActive || !$(this).data("stField")) {
-        return;
-      }
-      $menu.addClass("active");
-      $menu.appendTo(this);
-    }).mouseleave(function () {
-      if (!menuActive) {
-        $menu.removeClass("active");
-      }
-    });
-  
+    $(`thead th`, $smartTable)
+      .mouseenter(function () {
+        if (menuActive || !$(this).data("stField")) {
+          return;
+        }
+        $menu.addClass("active");
+        $menu.appendTo(this);
+      })
+      .mouseleave(function () {
+        if (!menuActive) {
+          $menu.removeClass("active");
+        }
+      });
+
     const $menuSearchInput = $(".smart-table__menu-value-search-input", $menu);
     function getSearchQueryValueCheckboxes(shouldMatchSearchQuery = true) {
       const searchQuery = $menuSearchInput.val();
@@ -302,7 +308,7 @@
         return shouldMatchSearchQuery ? isMatched : !isMatched;
       });
     }
-  
+
     function showSearchQueryResults() {
       const matchedCheckboxes = getSearchQueryValueCheckboxes();
       $(".smart-table__menu-empty-value").toggleClass(
@@ -314,7 +320,7 @@
         .closest(".list-group-item")
         .addClass("d-none");
     }
-  
+
     $menuSearchInput.on("input", function () {
       $activeTh.data("search-query", $(this).val());
       showSearchQueryResults();
@@ -327,7 +333,10 @@
       }
       return type;
     }
-    const $menuValueCheckboxes = $(".smart-table__menu-value-checkboxes", $menu);
+    const $menuValueCheckboxes = $(
+      ".smart-table__menu-value-checkboxes",
+      $menu
+    );
     let fieldValuesList = [];
     $menu.on("shown.bs.dropdown", async function () {
       menuActive = true;
@@ -432,7 +441,7 @@
       `);
       showSearchQueryResults();
     });
-  
+
     $menu.on("hidden.bs.dropdown", function () {
       menuActive = false;
       $menuValueCheckboxes.empty();
@@ -442,7 +451,7 @@
         $activeTh = null;
       }
     });
-  
+
     function formatValue(value, type) {
       switch (type) {
         case "number":
@@ -453,7 +462,7 @@
           return value;
       }
     }
-  
+
     function updateSubtotals() {
       $ths.each(async function () {
         const field = $(this).data("stField");
@@ -465,7 +474,7 @@
         if (subtotalTh.length !== 0) {
           const subtotal = subtotalTh.data("stSubtotal");
           let subtotalResult = null;
-  
+
           try {
             subtotalResult = await options.getSubtotal(
               field,
@@ -483,7 +492,7 @@
         }
       });
     }
-  
+
     const $menuButtonSortIcon = $(".smart-table__menu-sort-button-icon", $menu);
     function changeSortIcon() {
       const sort = $activeTh.data("newSort");
@@ -544,11 +553,11 @@
       changeSortIcon();
       changeOrder();
     });
-  
+
     $(".cancel-button", $menu).on("click", function () {
       $menu.dropdown("hide");
     });
-  
+
     async function showRows(forceReset = false) {
       try {
         await options.showRows(fieldValuesList, order, forceReset);
@@ -558,7 +567,7 @@
       }
       updateSubtotals();
     }
-  
+
     $(".submit-button", $menu).on("click", async function () {
       $activeTh.data("sort", $activeTh.data("newSort"));
       order = newOrder;
@@ -595,8 +604,8 @@
           });
         }
       } else {
-        const exclude = Array.from(unmatchedCheckboxes).map((unmatchedCheckbox) =>
-          $(unmatchedCheckbox).val()
+        const exclude = Array.from(unmatchedCheckboxes).map(
+          (unmatchedCheckbox) => $(unmatchedCheckbox).val()
         );
         if (fieldValues) {
           fieldValues.include = [];
@@ -613,17 +622,17 @@
       await showRows();
       $menu.dropdown("hide");
     });
-  
+
     $(".smart-table__menu-value-check-all").on("click", function () {
       getSearchQueryValueCheckboxes().prop("checked", true);
     });
-  
+
     $(".smart-table__menu-value-uncheck-all").on("click", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
     showRows(true);
   };
-  
+
   $.fn.smartTableWithVirtualScroll = function (options) {
     this.smartTable({
       async getValues(field, type, fieldValuesList) {
@@ -712,4 +721,80 @@
   };
 })();
 
+function smartTableToType(rows, field, type) {
+  return JSON.parse(JSON.stringify(rows)).map((row) => {
+    const value = row[field];
+    switch (type) {
+      default:
+        return value;
+    }
+  });
+}
 
+function smartTableFilterRows(rows, fieldValuesList, field = null) {
+  let filteredRows = JSON.parse(JSON.stringify(rows));
+  for (const fieldValues of fieldValuesList) {
+    if (fieldValues.field == field) {
+      break;
+    }
+    filteredRows = filteredRows.filter((row) => {
+      const value = row[fieldValues.field];
+      return fieldValues.exclude.length === 0
+        ? value == null
+          ? fieldValues.include.includes("")
+          : fieldValues.include.some((item) => item == value)
+        : value == null
+        ? !fieldValues.exclude.includes("")
+        : !fieldValues.exclude.some((item) => item == value);
+    });
+  }
+  return filteredRows;
+}
+
+function smartTableFilterUniques(rows, field, type, fieldValuesList) {
+  return smartTableFilterRows(rows, fieldValuesList, field).map(
+    (row) => row[field]
+  );
+}
+
+function smartTableGetSubtotal(rows, field, type, subtotal, fieldValuesList) {
+  switch (subtotal) {
+    case 2:
+      return smartTableToType(
+        filterRows(rows, fieldValuesList),
+        field,
+        type
+      ).filter((row) => row[field]).length;
+    case 9:
+      return smartTableToType(
+        filterRows(rows, fieldValuesList),
+        field,
+        type
+      ).reduce((sum, row) => sum + (parseFloat(row[field]) || 0), 0);
+    default:
+      return 0;
+  }
+}
+
+function smartTableOrderRows(rows, order) {
+  let orderedRows = JSON.parse(JSON.stringify(rows));
+  if (order.length !== 0) {
+    orderedRows.sort((a, b) => {
+      return order.reduce((previousValue, currentValue) => {
+        let value1 = a[currentValue.field];
+        let value2 = b[currentValue.field];
+        if (currentValue.sort === "desc") {
+          [value1, value2] = [value2, value1];
+        }
+        let result = null;
+        if (typeof value1 === "number" && typeof value2 === "number") {
+          result = value1 - value2;
+        } else {
+          result = value1.toString().localeCompare(value2.toString());
+        }
+        return previousValue ? previousValue || result : result;
+      }, null);
+    });
+  }
+  return orderedRows;
+}
