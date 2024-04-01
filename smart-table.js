@@ -750,17 +750,15 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
     if (fieldValues.field == field) {
       break;
     }
-    fieldValues.include = fieldValues.include.map(value => smartTableParseValue(value, fieldValues.type));
-    fieldValues.exclude = fieldValues.exclude.map(value => smartTableParseValue(value, fieldValues.type));
     filteredRows = filteredRows.filter((row) => {
       const value = row[fieldValues.field];
       return fieldValues.exclude.length === 0
         ? value == null
           ? fieldValues.include.includes("")
-          : fieldValues.include.some((item) => item == value)
+          : fieldValues.include.some((item) => smartTableParseValue(item, fieldValues.type) == value)
         : value == null
         ? !fieldValues.exclude.includes("")
-        : !fieldValues.exclude.some((item) => item == value);
+        : !fieldValues.exclude.some((item) => smartTableParseValue(item, fieldValues.type) == value);
     });
   }
   return filteredRows;
