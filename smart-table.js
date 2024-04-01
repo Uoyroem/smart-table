@@ -757,7 +757,7 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
   return filteredRows;
 }
 
-function smartTableFilterUniques(rows, field, type, fieldValuesList) {
+function smartTableGetValues(rows, field, type, fieldValuesList) {
   return smartTableToType(smartTableFilterRows(rows, fieldValuesList, field), field, type).map(
     (row) => row[field]
   );
