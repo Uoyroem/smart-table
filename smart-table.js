@@ -109,7 +109,7 @@
       </div>
     `);
     const $reloadButton = $(`
-      <button class="btn btn-sm smart-table__reload-button me-2">
+      <button type="button" class="btn btn-sm smart-table__reload-button me-2">
         <i class="fa-solid fa-repeat"></i>
       </button>
     `);
