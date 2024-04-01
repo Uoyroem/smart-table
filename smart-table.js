@@ -726,10 +726,9 @@ function smartTableToType(rows, field, type) {
     return [];
   }
   return JSON.parse(JSON.stringify(rows)).map((row) => {
-    const value = row[field];
     switch (type) {
       default:
-        return value;
+        return row;
     }
   });
 }
