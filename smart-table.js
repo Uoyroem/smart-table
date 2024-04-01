@@ -368,7 +368,7 @@
                 const date = new Date(value);
                 return date.toISOString().slice(0, 10);
               default:
-                return value;
+                return `${value}`.replace('"', "&quot;");
             }
           })
         )
