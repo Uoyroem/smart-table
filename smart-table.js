@@ -128,7 +128,9 @@
       </div>
     `);
     $toolsContainer.append($settings);
-    $toolsContainer.append($reloadButton);
+    if (options.canReload) {
+      $toolsContainer.append($reloadButton);
+    }
     if (options.unloadTypes && options.unloadUrl) {
       const $unloadTypes = $(".smart-table__unload-types", $unload);
       let index = 0;
