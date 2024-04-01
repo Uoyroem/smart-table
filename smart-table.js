@@ -1,4 +1,13 @@
 (function () {
+
+  function valueToId(value) {
+    return btoa(unescape(encodeURIComponent(value)));
+  }
+
+  function idToValue(id) {
+    return decodeURIComponent(escape(atob(id)));
+  }
+
   const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
@@ -303,8 +312,8 @@
     function getSearchQueryValueCheckboxes(shouldMatchSearchQuery = true) {
       const searchQuery = $menuSearchInput.val();
       return $(".smart-table__menu-value-checkbox", $menu).filter(function () {
-        const isMatched = $(this)
-          .val()
+        const isMatched = idToValue($(this)
+          .val())
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
         return shouldMatchSearchQuery ? isMatched : !isMatched;
@@ -410,11 +419,11 @@
           `);
         } else {
           let formattedValue = formatValue(value, type);
-          const id = `checkbox-${`${value}`.replace(/"/g, "'")}`;
+          const id = `checkbox-${valueToId(value)}`;
           $menuValueCheckboxes.append(`
             <li class="list-group-item">
               <div class="form-check">
-                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${`${value}`.replace(/"/g, "'")}" id="${id}" checked>
+                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${valueToId(value)}" id="${id}" checked>
                 <label class="form-check-label" for="${id}">
                   ${formattedValue}
                 </label>
@@ -431,8 +440,8 @@
           $(this).prop(
             "checked",
             fieldValues.exclude.length === 0
-              ? fieldValues.include.includes($(this).val())
-              : !fieldValues.exclude.includes($(this).val())
+              ? fieldValues.include.includes(idToValue($(this).val()))
+              : !fieldValues.exclude.includes(idToValue($(this).val()))
           );
         });
       }
@@ -592,7 +601,7 @@
         }
       } else if (unmatchedCheckboxes.length > matchedCheckboxes.length) {
         const include = Array.from(matchedCheckboxes).map((matchedCheckbox) =>
-          $(matchedCheckbox).val()
+          idToValue($(matchedCheckbox).val())
         );
         if (fieldValues) {
           fieldValues.include = include;
@@ -607,7 +616,7 @@
         }
       } else {
         const exclude = Array.from(unmatchedCheckboxes).map(
-          (unmatchedCheckbox) => $(unmatchedCheckbox).val()
+          (unmatchedCheckbox) => idToValue($(unmatchedCheckbox).val())
         );
         if (fieldValues) {
           fieldValues.include = [];
