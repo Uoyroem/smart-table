@@ -723,15 +723,20 @@
   };
 })();
 
+function smartTableParseValue(value, type) {
+  switch (type) {
+    case "boolean":
+      return typeof value === "string" ? value === "true" : !!value;
+  }
+  return value;
+}
+
 function smartTableToType(rows, field, type) {
   if (!rows || rows.length === 0) {
     return [];
   }
   return JSON.parse(JSON.stringify(rows)).map((row) => {
-    switch (type) {
-      case "boolean":
-        row[field] = typeof row[field] === "string" ? row[field] === "true" : !!row[field];
-    }
+    row[field] = smartTableParseValue(row[field], type);
     return row;
   });
 }
@@ -745,6 +750,8 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
     if (fieldValues.field == field) {
       break;
     }
+    fieldValues.include = fieldValues.include.map(value => smartTableParseValue(value, fieldValues.type));
+    fieldValues.exclude = fieldValues.exclude.map(value => smartTableParseValue(value, fieldValues.type));
     filteredRows = filteredRows.filter((row) => {
       const value = row[fieldValues.field];
       return fieldValues.exclude.length === 0
