@@ -729,9 +729,10 @@ function smartTableToType(rows, field, type) {
   }
   return JSON.parse(JSON.stringify(rows)).map((row) => {
     switch (type) {
-      default:
-        return row;
+      case "boolean":
+        row[field] = typeof row[field] === "string" ? row[field] === "true" : !!row[field];
     }
+    return row;
   });
 }
 
@@ -759,9 +760,11 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
 }
 
 function smartTableGetValues(rows, field, type, fieldValuesList) {
-  return smartTableToType(smartTableFilterRows(rows, fieldValuesList, field), field, type).map(
-    (row) => row[field]
-  );
+  return smartTableToType(
+    smartTableFilterRows(rows, fieldValuesList, field),
+    field,
+    type
+  ).map((row) => row[field]);
 }
 
 function smartTableGetSubtotal(rows, field, type, subtotal, fieldValuesList) {
