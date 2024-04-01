@@ -771,13 +771,13 @@ function smartTableGetSubtotal(rows, field, type, subtotal, fieldValuesList) {
   switch (subtotal) {
     case 2:
       return smartTableToType(
-        filterRows(rows, fieldValuesList),
+        smartTableFilterRows(rows, fieldValuesList),
         field,
         type
       ).filter((row) => row[field]).length;
     case 9:
       return smartTableToType(
-        filterRows(rows, fieldValuesList),
+        smartTableFilterRows(rows, fieldValuesList),
         field,
         type
       ).reduce((sum, row) => sum + (parseFloat(row[field]) || 0), 0);
