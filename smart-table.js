@@ -93,7 +93,7 @@
         </button>
         <ul class="dropdown-menu">
           <li>
-            <button class="btn dropdown-item smart-table__reset-button">Сбросить фильтр</button>
+            <button type="button" class="btn dropdown-item smart-table__reset-button">Сбросить фильтр</button>
           </li>
           <li>
             <div class="btn-group dropend w-100">
@@ -231,7 +231,7 @@
         </button>
         <ul class="dropdown-menu">
           <li class="mb-2">
-            <button class="btn dropdown-item smart-table__menu-sort-button">
+            <button type="button" class="btn dropdown-item smart-table__menu-sort-button">
               <div class="row">
                 <div class="col-1">
                   <span class="smart-table__menu-sort-order text-primary-emphasis fw-bold">
@@ -248,10 +248,10 @@
           </li>
           <li>
             <div class="mx-2">
-              <button class="btn btn-sm btn-link smart-table__menu-value-check-all">
+              <button type="button" class="btn btn-sm btn-link smart-table__menu-value-check-all">
                 Выделить все
-                </button>
-                <button class="btn btn-sm btn-link smart-table__menu-value-uncheck-all">
+              </button>
+              <button type="button" class="btn btn-sm btn-link smart-table__menu-value-uncheck-all">
                 Сбросить
               </button>
               <div class="position-relative mb-2">
@@ -270,10 +270,10 @@
           <li><hr class="dropdown-divider"></li>
           <li>
             <div class="text-end mx-2">
-              <button class="btn btn-sm btn-outline-primary cancel-button">
+              <button type="button" class="btn btn-sm btn-outline-primary cancel-button">
                 Отмена
               </button>
-              <button class="btn btn-sm btn-primary submit-button">
+              <button type="button" class="btn btn-sm btn-primary submit-button">
                 Принять
               </button>
             </div>
