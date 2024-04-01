@@ -722,6 +722,9 @@
 })();
 
 function smartTableToType(rows, field, type) {
+  if (!rows || rows.length === 0) {
+    return [];
+  }
   return JSON.parse(JSON.stringify(rows)).map((row) => {
     const value = row[field];
     switch (type) {
@@ -732,6 +735,9 @@ function smartTableToType(rows, field, type) {
 }
 
 function smartTableFilterRows(rows, fieldValuesList, field = null) {
+  if (!rows || rows.length === 0) {
+    return [];
+  }
   let filteredRows = JSON.parse(JSON.stringify(rows));
   for (const fieldValues of fieldValuesList) {
     if (fieldValues.field == field) {
@@ -752,12 +758,16 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
 }
 
 function smartTableFilterUniques(rows, field, type, fieldValuesList) {
+
   return smartTableFilterRows(rows, fieldValuesList, field).map(
     (row) => row[field]
   );
 }
 
 function smartTableGetSubtotal(rows, field, type, subtotal, fieldValuesList) {
+  if (!rows || rows.length === 0) {
+    return 0;
+  }
   switch (subtotal) {
     case 2:
       return smartTableToType(
