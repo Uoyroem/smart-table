@@ -6,6 +6,9 @@
 
   function getFilename(response) {
     const contentDisposition = response.headers.get("Content-Disposition");
+    if (!contentDisposition) {
+      return "";
+    } 
     filename = contentDisposition.split(/;(.+)/)[1].split(/=(.+)/)[1];
     if (filename.toLowerCase().startsWith("utf-8''")) {
       filename = decodeURIComponent(filename.replace(/utf-8''/i, ""));
@@ -110,18 +113,25 @@
     `);
     const $reloadButton = $(`
       <button type="button" title="Обновить таблицу" class="btn btn-sm smart-table__reload-button me-2">
-        <i class="fa-solid fa-repeat"></i>
+        <i class="fa-solid fa-sync"></i>
       </button>
     `);
     const $unload = $(`
-      <div class="dropdown smart-table__unload">
-        <button class="btn btn-sm dropdown-toggle" type="button" title="Выгрузить данные из таблицы в виде файла" data-bs-toggle="dropdown" aria-expanded="false">
-          <i class="fa-solid fa-upload"></i>
+      <div class="d-flex">
+        <div class="dropdown smart-table__unload">
+          <button class="btn btn-sm dropdown-toggle smart-table__unload-button" type="button" title="Выгрузить данные из таблицы в виде файла" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="fa-solid fa-upload"></i>
+          </button>
+          <ul class="dropdown-menu smart-table__unload-types">
+          </ul>
+        </div>
+        <button class="btn btn-sm text-danger ms-1 smart-table__unload-cancel-button d-none">
+          Отмена
         </button>
-        <ul class="dropdown-menu smart-table__unload-types">
-        </ul>
       </div>
     `);
+    const $unloadButton = $unload.find(".smart-table__unload-button");
+    const $unloadCancelButton = $unload.find(".smart-table__unload-cancel-button");
 
     const $toolsContainer = $(`
       <div class="d-flex mb-1">
@@ -132,42 +142,72 @@
       $toolsContainer.append($reloadButton);
     }
     if (options.unloadTypes && options.unloadUrl) {
-      const $unloadTypes = $(".smart-table__unload-types", $unload);
-      let index = 0;
-      for (const unloadType of options.unloadTypes) {
-        $unloadTypes.append(`
-          <li>
-            <button class="dropdown-item btn btn-sm">${unloadType.html}</button>
-          </li>
-        `);
-        $unloadTypes
-          .last()
-          .first()
-          .on("click", async function () {
-            const response = await fetch(options.unloadUrl, {
-              method: "POST",
-              body: JSON.stringify({
-                order,
-                fieldValuesList,
-                type: unloadType.type,
-              }),
-              headers: {
-                "X-CSRFToken": options.csrfToken,
-              },
-            });
+      let unloadAbortController = null;
+      let unloading = false;
+      async function unload(type) {
+        if (unloading) {
+          return;
+        }
+        unloading = true;
+        $unloadButton.prop("disabled", true);
+        $unloadButton.find(".fa-solid").addClass("fa-fade");
+        $unloadCancelButton.removeClass("d-none");
+        unloadAbortController = new AbortController();
+        try {
+          const response = await fetch(options.unloadUrl, {
+            method: "POST",
+            body: JSON.stringify({
+              order,
+              fieldValuesList,
+              type,
+            }),
+            headers: {
+              "X-CSRFToken": options.csrfToken,
+            },
+            signal: unloadAbortController.signal
+          });
+          console.log(response);
+          if (response.ok) {
             const blob = await response.blob();
-            console.log(response, blob);
             const objectUrl = URL.createObjectURL(blob);
             const a = document.createElement("a");
             document.body.appendChild(a);
             a.href = objectUrl;
-
             a.download = getFilename(response);
             a.click();
             a.remove();
             URL.revokeObjectURL(objectUrl);
-          });
-        index++;
+          }
+        } catch (error) {
+          console.error(error);
+        }
+        unloadAbortController = null;
+        $unloadButton.find(".fa-solid").removeClass("fa-fade");
+        $unloadCancelButton.addClass("d-none");
+        $unloadButton.prop("disabled", false);
+        unloading = false;
+      }
+      const $unloadTypes = $(".smart-table__unload-types", $unload);
+      $unloadCancelButton.on("click", function() {
+        if (unloadAbortController == null) {
+          return;
+        }
+        try {
+          unloadAbortController.abort();
+        } catch (error) {
+          console.log(error);
+        }
+      });
+      $unloadTypes.on("click", ".smart-table__unload-type", function() {
+        const type = $(this).data("stUnloadType");
+        unload(type);
+      });
+      for (const unloadType of options.unloadTypes) {
+        $unloadTypes.append(`
+          <li>
+            <button class="dropdown-item btn btn-sm smart-table__unload-type" data-st-unload-type="${unloadType.type}">${unloadType.html}</button>
+          </li>
+        `);
       }
       $toolsContainer.append($unload);
     }
@@ -191,9 +231,7 @@
         const checkbox = $(`
           <div class="form-check form-switch">
             <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}">
-            <label class="form-check-label" for="${id}">${$(this)
-          .text()
-          .trim()}</label>
+            <label class="form-check-label" for="${id}">${$(this).text().trim()}</label>
           </div>
         `)
           .find(".smart-table__column-toggle-checkbox")
@@ -221,7 +259,9 @@
     });
     $reloadButton.on("click", async function () {
       $(this).prop("disabled", true);
+      $(this).find(".fa-solid").addClass("fa-spin");
       await showRows(true);
+      $(this).find(".fa-solid").removeClass("fa-spin");
       $(this).prop("disabled", false);
     });
     const $menu = $(`
@@ -391,16 +431,13 @@
       });
       $menuValueCheckboxes.empty();
       let index = 0;
+      let hasEmptyCheckbox = false;
       for (let value of values) {
         if (value == null) {
-          indexValue[""] = "";
-          if (
-            $menuValueCheckboxes.find(
-              `.smart-table__menu-value-checkbox[value=""]`
-            ).length !== 0
-          ) {
+          if (hasEmptyCheckbox) {
             continue;
           }
+          indexValue[""] = "";
           $menuValueCheckboxes.prepend(`
             <li class="list-group-item">
               <div class="form-check">
@@ -411,17 +448,16 @@
               </div>
             </li>
           `);
+          hasEmptyCheckbox = true;
         } else {
           indexValue[index] = value;
           const id = `checkbox-${index}`;
-
-          const formattedValue = formatValue(value, type);
           $menuValueCheckboxes.append(`
             <li class="list-group-item">
               <div class="form-check">
                 <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${index}" id="${id}" checked>
                 <label class="form-check-label" for="${id}">
-                  ${formattedValue}
+                  ${formatValue(value, type)}
                 </label>
               </div>
             </li>
@@ -763,8 +799,8 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
           ? fieldValues.include.includes("")
           : fieldValues.include.some((item) => smartTableParseValue(item, fieldValues.type) == value)
         : value == null
-        ? !fieldValues.exclude.includes("")
-        : !fieldValues.exclude.some((item) => smartTableParseValue(item, fieldValues.type) == value);
+          ? !fieldValues.exclude.includes("")
+          : !fieldValues.exclude.some((item) => smartTableParseValue(item, fieldValues.type) == value);
     });
   }
   return filteredRows;

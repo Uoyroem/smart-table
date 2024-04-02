@@ -59,16 +59,16 @@
             defaultOrder: [{"field": "datetime", "sort": "desc"}],
             unloadTypes: [
                 {
-                    type: "just-excel",
-                    html: `<i class="fa-solid fa-file-excel"></i> XLSX`
+                    html: `<i class="fa-solid fa-file-excel"></i> Изьятие (новый)`,
+                    type: "mandatory-payment-seizures-xlsx-1"
                 }
             ],
+            unloadUrl: "http://127.0.0.1:8000/p1/finance-module/unload",
             lastRowTarget: "#last-row",
             rowsTarget: "#rows",
             getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-values",
             getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-rows",
             getSubtotalUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-subtotal",
-            unloadUrl: "1123",
             loadingHtml: `
                 <tr>
                     <td class="text-center" colspan="5">
