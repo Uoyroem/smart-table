@@ -1,13 +1,4 @@
 (function () {
-
-  function valueToId(value) {
-    return btoa(unescape(encodeURIComponent(value)));
-  }
-
-  function idToValue(id) {
-    return decodeURIComponent(escape(atob(id)));
-  }
-
   const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
@@ -97,7 +88,7 @@
     }
     const $settings = $(`
       <div class="dropdown me-2 smart-table__settings">
-        <button class="btn btn-sm" data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-sm" title="Настройки таблицы - сброс фильтра, показать/скрыть столбец и т.п." data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fa-solid fa-gears"></i>
         </button>
         <ul class="dropdown-menu">
@@ -118,13 +109,13 @@
       </div>
     `);
     const $reloadButton = $(`
-      <button type="button" class="btn btn-sm smart-table__reload-button me-2">
+      <button type="button" title="Обновить таблицу" class="btn btn-sm smart-table__reload-button me-2">
         <i class="fa-solid fa-repeat"></i>
       </button>
     `);
     const $unload = $(`
       <div class="dropdown smart-table__unload">
-        <button class="btn btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-sm dropdown-toggle" type="button" title="Выгрузить данные из таблицы в виде файла" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fa-solid fa-upload"></i>
         </button>
         <ul class="dropdown-menu smart-table__unload-types">
@@ -137,7 +128,7 @@
       </div>
     `);
     $toolsContainer.append($settings);
-    if (options.canReload) {
+    if (!("canReload" in options) || options.canReload) {
       $toolsContainer.append($reloadButton);
     }
     if (options.unloadTypes && options.unloadUrl) {
@@ -312,8 +303,8 @@
     function getSearchQueryValueCheckboxes(shouldMatchSearchQuery = true) {
       const searchQuery = $menuSearchInput.val();
       return $(".smart-table__menu-value-checkbox", $menu).filter(function () {
-        const isMatched = idToValue($(this)
-          .val())
+        const isMatched = indexValue[$(this)
+          .val()]
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
         return shouldMatchSearchQuery ? isMatched : !isMatched;
@@ -349,6 +340,7 @@
       $menu
     );
     let fieldValuesList = [];
+    let indexValue = {};
     $menu.on("shown.bs.dropdown", async function () {
       menuActive = true;
       $activeTh = $(this).closest("th");
@@ -398,8 +390,10 @@
         }
       });
       $menuValueCheckboxes.empty();
+      let index = 0;
       for (let value of values) {
         if (value == null) {
+          indexValue[""] = "";
           if (
             $menuValueCheckboxes.find(
               `.smart-table__menu-value-checkbox[value=""]`
@@ -418,18 +412,21 @@
             </li>
           `);
         } else {
-          let formattedValue = formatValue(value, type);
-          const id = `checkbox-${valueToId(value)}`;
+          indexValue[index] = value;
+          const id = `checkbox-${index}`;
+
+          const formattedValue = formatValue(value, type);
           $menuValueCheckboxes.append(`
             <li class="list-group-item">
               <div class="form-check">
-                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${valueToId(value)}" id="${id}" checked>
+                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="${index}" id="${id}" checked>
                 <label class="form-check-label" for="${id}">
                   ${formattedValue}
                 </label>
               </div>
             </li>
           `);
+          index++;
         }
       }
       const fieldValues = fieldValuesList.find(
@@ -440,8 +437,8 @@
           $(this).prop(
             "checked",
             fieldValues.exclude.length === 0
-              ? fieldValues.include.includes(idToValue($(this).val()))
-              : !fieldValues.exclude.includes(idToValue($(this).val()))
+              ? fieldValues.include.includes(indexValue[$(this).val()])
+              : !fieldValues.exclude.includes(indexValue[$(this).val()])
           );
         });
       }
@@ -601,7 +598,7 @@
         }
       } else if (unmatchedCheckboxes.length > matchedCheckboxes.length) {
         const include = Array.from(matchedCheckboxes).map((matchedCheckbox) =>
-          idToValue($(matchedCheckbox).val())
+          indexValue[$(matchedCheckbox).val()]
         );
         if (fieldValues) {
           fieldValues.include = include;
@@ -616,7 +613,7 @@
         }
       } else {
         const exclude = Array.from(unmatchedCheckboxes).map(
-          (unmatchedCheckbox) => idToValue($(unmatchedCheckbox).val())
+          (unmatchedCheckbox) => indexValue[$(unmatchedCheckbox).val()]
         );
         if (fieldValues) {
           fieldValues.include = [];
