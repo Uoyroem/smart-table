@@ -343,8 +343,7 @@
     function getSearchQueryValueCheckboxes(shouldMatchSearchQuery = true) {
       const searchQuery = $menuSearchInput.val();
       return $(".smart-table__menu-value-checkbox", $menu).filter(function () {
-        const isMatched = indexValue[$(this)
-          .val()]
+        const isMatched = `${indexValue[$(this).val()]}`
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
         return shouldMatchSearchQuery ? isMatched : !isMatched;
