@@ -8,6 +8,7 @@
 }
 
 .smart-table__menu {
+    z-index: 99999999999;
 }
 
 .smart-table__menu-container {
