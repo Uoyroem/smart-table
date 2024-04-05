@@ -12,6 +12,9 @@
 
 .smart-table__menu-container {
 }
+.smart-table__th-content-container {
+    width: 100%;
+}
 
 .smart-table__menu .dropdown-menu {
     width: 20em;
