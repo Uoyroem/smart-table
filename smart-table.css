@@ -14,6 +14,7 @@
 }
 .smart-table__th-content-container {
     width: 100%;
+    margin-right: 0.125em;
 }
 
 .smart-table__menu .dropdown-menu {
