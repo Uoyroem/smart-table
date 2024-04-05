@@ -269,7 +269,7 @@
 
     $ths.each(function() {
       $(this).html(`
-        <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex justify-content-between">
           <div class="smart-table__th-content-container">
             ${$(this).html()}
           </div>
