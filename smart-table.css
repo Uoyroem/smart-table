@@ -8,10 +8,9 @@
 }
 
 .smart-table__menu {
-    display: none;
-    position: absolute;    
-    bottom: 0.1em;
-    right: 0.1em;
+}
+
+.smart-table__menu-container {
 }
 
 .smart-table__menu .dropdown-menu {
@@ -26,10 +25,6 @@
 .smart-table__column-toggle-checkboxes {
     max-height: 10em;
     overflow-y: scroll;
-}
-
-.smart-table__menu.active {
-    display: block;
 }
 
 .smart-table > :where(thead, tbody, tfoot) > tr > :where(td, th):not(.smart-table__always-shown) {
