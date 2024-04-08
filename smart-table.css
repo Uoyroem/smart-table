@@ -7,20 +7,18 @@
 
 }
 
-.smart-table__menu {
-}
-
-
+.smart-table__menu {}
 
 .smart-table__menu-container {
     align-self: flex-end;
 }
+
 .smart-table__th-content-container {
     width: 100%;
     margin-right: 0.125em;
 }
 
-.smart-table__menu .dropdown-menu {
+.smart-table__menu {
     width: 20em;
 }
 
@@ -29,27 +27,29 @@
     overflow-y: scroll;
 }
 
+.smart-table__menu-value-checkboxes:last-child {
+    border-bottom: none;
+}
+
 .smart-table__column-toggle-checkboxes {
     max-height: 10em;
     overflow-y: scroll;
 }
 
-.smart-table > :where(thead, tbody, tfoot) > tr > :where(td, th):not(.smart-table__always-shown) {
+.smart-table> :where(thead, tbody, tfoot)>tr> :where(td, th):not(.smart-table__always-shown) {
     display: none;
 }
 
-.smart-table > :where(thead, tbody, tfoot) > tr > th.active {
+.smart-table> :where(thead, tbody, tfoot)>tr>th.active {
     display: table-cell;
 }
 
-.smart-table > thead > tr > th[data-st-field]:not([data-st-field=""]) {
+.smart-table>thead>tr>th[data-st-field]:not([data-st-field=""]) {
     position: relative;
 }
 
 .smart-table-container__column-toggle-checkbox {}
 
-.smart-table {
-
-}
+.smart-table {}
 
 .button {}

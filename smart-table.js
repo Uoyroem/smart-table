@@ -52,6 +52,14 @@
         return JSON.parse(localStorage.getItem(key));
       }
     }
+    function getType(th) {
+      let type = $(th).data("stType");
+      if (!type) {
+        type = "string";
+        $(th).data("stType", type);
+      }
+      return type;
+    }
     const $style = $("<style></style>").appendTo($smartTable);
     const styleSheet = $style.prop("sheet");
     const fields = [];
@@ -266,79 +274,124 @@
       $(this).find(".fa-solid").removeClass("fa-spin");
       $(this).prop("disabled", false);
     });
-
-    $ths.each(function() {
+    $ths.each(function () {
       $(this).html(`
         <div class="d-flex justify-content-between">
           <div class="smart-table__th-content-container">
             ${$(this).html()}
           </div>
-          <div class="smart-table__menu-container">
-            <div class="dropdown smart-table__menu fw-normal">
-              <button class="btn btn-sm" type="button" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
-                <i class="fa-solid fa-caret-down"></i>
-              </button>
-              <ul class="dropdown-menu">
-                <li class="mb-2">
-                  <button type="button" class="btn dropdown-item smart-table__menu-sort-button">
-                    <div class="row">
-                      <div class="col-1">
-                        <span class="smart-table__menu-sort-order text-primary-emphasis fw-bold">
-                        </span>
-                        <span class="smart-table__menu-sort-button-icon">
-                          <i class="fa-solid fa-sort"></i>
-                        </span>
-                      </div>
-                      <div class="col-11">
-                        Сортировать
-                      </div>
-                    </div>
-                  </button>
-                </li>
-                <li>
-                  <div class="mx-2">
-                    <button type="button" class="btn btn-sm btn-link smart-table__menu-value-check-all">
-                      Выделить все
-                    </button>
-                    <button type="button" class="btn btn-sm btn-link smart-table__menu-value-uncheck-all">
-                      Сбросить
-                    </button>
-                    <div class="position-relative mb-2">
-                      <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
-                      
-                        
-                      <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
-                    
-                    </div>
-                    
-                    <ul class="list-group list-group-flush smart-table__menu-value-checkboxes border rounded">
-                      
-                    </ul>
-                  </div>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <div class="text-end mx-2">
-                    <button type="button" class="btn btn-sm btn-outline-primary cancel-button">
-                      Отмена
-                    </button>
-                    <button type="button" class="btn btn-sm btn-primary submit-button">
-                      Принять
-                    </button>
-                  </div>
-                </li>
-              </ul>
-            </div>
+          <div class="smart-table__menu-toggle-button-container">
+            <button class="smart-table__menu-toggle-button btn btn-sm" type="button">
+              <i class="fa-solid fa-caret-down"></i>
+            </button>
           </div>
         </div>
       `);
     });
+    const $menu = $(`
+      <ul class="smart-table__menu dropdown-menu">
+        <li class="mb-2">
+          <button type="button" class="btn dropdown-item smart-table__menu-sort-button">
+            <div class="row">
+              <div class="col-1">
+                <span class="smart-table__menu-sort-order text-primary-emphasis fw-bold">
+                </span>
+                <span class="smart-table__menu-sort-button-icon">
+                  <i class="fa-solid fa-sort"></i>
+                </span>
+              </div>
+              <div class="col-11">
+                Сортировать
+              </div>
+            </div>
+          </button>
+        </li>
+        <li>
+          <div class="mx-2">
+            <button type="button" class="btn btn-sm btn-link smart-table__menu-value-check-all">
+              Выделить все
+            </button>
+            <button type="button" class="btn btn-sm btn-link smart-table__menu-value-uncheck-all">
+              Сбросить
+            </button>
+            <div class="position-relative mb-2">
+              <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
+              
+                
+              <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
+            
+            </div>
+            
+            <ul class="list-group list-group-flush smart-table__menu-value-checkboxes border rounded">
+              
+            </ul>
+          </div>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <div class="text-end mx-2">
+            <button type="button" class="btn btn-sm btn-outline-primary cancel-button">
+              Отмена
+            </button>
+            <button type="button" class="btn btn-sm btn-primary submit-button">
+              Принять
+            </button>
+          </div>
+        </li>
+      </ul>
+    `);
+    $menu.appendTo(document.body);
+    let menuActive = false;
+
+    let activeMenuToggleButton = null;
+    $smartTable.on(
+      "click",
+      ".smart-table__menu-toggle-button",
+      async function (event) {
+        event.stopPropagation();
+        if (activeMenuToggleButton != null && activeMenuToggleButton === this) {
+          hideMenu.call(this);
+        } else if (menuActive) {
+          hideMenu.call(this);
+          showMenu.call(this);
+        } else {
+          showMenu.call(this);
+        }
+      }
+    );
+    function showMenu() {
+      menuActive = true;
+      activeMenuToggleButton = this;
+      const offset = $(this).offset();
+      offset.top += $(this).outerHeight() + 2;
+      console.log(window.innerWidth, offset.left + $menu.outerWidth())
+      if (offset.left + $menu.outerWidth() > window.innerWidth) {
+        offset.left -= $menu.outerWidth() - $(this).outerWidth();
+      } 
+      $menu.css(offset);
+      $menu.addClass("show");
+      onMenuShown.call(this);
+    }
+    function hideMenu() {
+      menuActive = false;
+      activeMenuToggleButton = null;
+      $menu.removeClass("show");
+      onMenuHidden.call(this);
+    }
+    $(document).on("click", function () {
+      hideMenu();
+    });
+    $menu.on("click", function (event) {
+      event.stopPropagation();
+    });
 
     let $activeTh = null;
-    let menuActive = false;
     function getSearchQueryValueCheckboxes(shouldMatchSearchQuery = true) {
-      const searchQuery = $(".smart-table__menu-value-search-input", $activeMenu).val();
-      return $(".smart-table__menu-value-checkbox", $activeMenu).filter(function () {
+      const searchQuery = $(
+        ".smart-table__menu-value-search-input",
+        $menu
+      ).val();
+      return $(".smart-table__menu-value-checkbox", $menu).filter(function () {
         const isMatched = `${indexValue[$(this).val()]}`
           .toLowerCase()
           .includes(searchQuery.toLowerCase());
@@ -358,27 +411,17 @@
         .addClass("d-none");
     }
 
-    $smartTable.on("input", ".smart-table__menu-value-search-input", function () {
+    $menu.on("input", ".smart-table__menu-value-search-input", function () {
       $activeTh.data("search-query", $(this).val());
       showSearchQueryResults();
     });
-    function getType(th) {
-      let type = $(th).data("stType");
-      if (!type) {
-        type = "string";
-        $(th).data("stType", type);
-      }
-      return type;
-    }
+
     let fieldValuesList = [];
     let indexValue = {};
-    let $activeMenu = null;
     function onMenuHidden() {
-      $activeMenu = null;
-      menuActive = false;
       const $menuValueCheckboxes = $(
         ".smart-table__menu-value-checkboxes",
-        $activeMenu
+        $menu
       );
       $menuValueCheckboxes.empty();
       newOrder = null;
@@ -387,36 +430,22 @@
         $activeTh = null;
       }
     }
-    $smartTable.on("hidden.bs.dropdown", ".smart-table__menu", function() {
-      onMenuHidden.call(this);
-    });
-    async function onMenuOpen() {
-      if ($activeMenu) {
-        // Это самое дерьмовое что я делал в жизни, это просто для того 
-        // чтобы dropdown событий выполнялись последовательно, shown -> hidden -> shown 
-        // если открыть dropdown, когда другой dropdown открыт, а не shown -> shown -> hidden.
-        await new Promise((resolve, reject) => {
-          const interval = setInterval(() => {
-            if ($activeMenu) return;
-            clearInterval(interval);
-            resolve();
-          }, 5);
-        }); 
-      }
-
-      $activeMenu = $(this);
+    async function onMenuShown() {
       menuActive = true;
       $activeTh = $(this).closest("th");
       console.log($activeTh);
       newOrder = JSON.parse(JSON.stringify(order));
-      const $menuSearchInput = $(".smart-table__menu-value-search-input", $activeMenu);
+      const $menuSearchInput = $(
+        ".smart-table__menu-value-search-input",
+        $menu
+      );
       $menuSearchInput.val($activeTh.data("search-query"));
       $activeTh.data("newSort", $activeTh.data("sort"));
       changeSortIcon();
       changeOrder();
       const $menuValueCheckboxes = $(
         ".smart-table__menu-value-checkboxes",
-        $activeMenu
+        $menu
       );
       $menuValueCheckboxes.html(`
         <li class="list-group-item text-center">
@@ -498,7 +527,7 @@
         (fieldValues) => fieldValues.field === field
       );
       if (fieldValues) {
-        $(".smart-table__menu-value-checkbox", $activeMenu).each(function () {
+        $(".smart-table__menu-value-checkbox", $menu).each(function () {
           $(this).prop(
             "checked",
             fieldValues.exclude.length === 0
@@ -515,11 +544,6 @@
       showSearchQueryResults();
     }
 
-    $smartTable.on("shown.bs.dropdown", ".smart-table__menu", function() {
-
-      onMenuOpen.call(this);
-    });
-    
     function formatValue(value, type) {
       switch (type) {
         case "number":
@@ -562,7 +586,10 @@
     }
 
     function changeSortIcon() {
-      const $menuButtonSortIcon = $(".smart-table__menu-sort-button-icon", $activeMenu);
+      const $menuButtonSortIcon = $(
+        ".smart-table__menu-sort-button-icon",
+        $menu
+      );
       const sort = $activeTh.data("newSort");
       if (!sort) {
         $menuButtonSortIcon.html(`<i class="fa-solid fa-sort"></i>`);
@@ -606,10 +633,10 @@
           sort,
         });
       }
-      const $menuButtonSortOrder = $(".smart-table__menu-sort-order", $activeMenu);
+      const $menuButtonSortOrder = $(".smart-table__menu-sort-order", $menu);
       $menuButtonSortOrder.html(index != null ? index + 1 : "");
     }
-    $smartTable.on("click", ".smart-table__menu .smart-table__menu-sort-button", function () {
+    $menu.on("click", ".smart-table__menu-sort-button", function () {
       const sort = $activeTh.data("newSort");
       if (!sort) {
         $activeTh.data("newSort", "asc");
@@ -620,10 +647,10 @@
       }
       changeSortIcon();
       changeOrder();
-    }); 
+    });
 
-    $smartTable.on("click", ".smart-table__menu .cancel-button", function () {
-      $activeMenu.dropdown("hide");
+    $menu.on("click", ".cancel-button", function () {
+      hideMenu();
     });
 
     async function showRows(forceReset = false) {
@@ -636,18 +663,18 @@
       updateSubtotals();
     }
 
-    $smartTable.on("click", ".smart-table__menu .submit-button", async function () {
+    $menu.on("click", ".submit-button", async function () {
       $activeTh.data("sort", $activeTh.data("newSort"));
       order = newOrder;
       const field = $activeTh.data("stField");
       const type = $activeTh.data("stType");
       const matchedCheckboxes = $(
         ".smart-table__menu-value-checkbox:checked",
-        $activeMenu
+        $menu
       );
       const unmatchedCheckboxes = $(
         ".smart-table__menu-value-checkbox:not(:checked)",
-        $activeMenu
+        $menu
       );
       const fieldValues = fieldValuesList.find(
         (fieldValues) => fieldValues.field === field
@@ -688,14 +715,14 @@
         }
       }
       await showRows();
-      $activeMenu.dropdown("hide");
+      hideMenu();
     });
 
-    $smartTable.on("click", ".smart-table__menu .smart-table__menu-value-check-all", function() {
+    $menu.on("click", ".smart-table__menu-value-check-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", true);
     });
 
-    $smartTable.on("click", ".smart-table__menu .smart-table__menu-value-uncheck-all", function () {
+    $menu.on("click", ".smart-table__menu-value-uncheck-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
     showRows(true);
