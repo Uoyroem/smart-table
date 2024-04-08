@@ -9,10 +9,6 @@
 
 .smart-table__menu {}
 
-.smart-table__menu-container {
-    align-self: flex-end;
-}
-
 .smart-table__th-content-container {
     width: 100%;
     margin-right: 0.125em;
