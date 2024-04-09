@@ -237,15 +237,19 @@
       ".smart-table__column-toggle-checkboxes",
       $settings
     );
-    async function resetFilters() {
+    async function resetFilters(reload = true) {
       fieldValuesList = [];
       resetOrder();
-      await showRows();
+      if (reload) {
+        await showRows();
+      }
       $settings.dropdown("hide");
     }
     $(".smart-table__reset-button", $settings).on("click", resetFilters);
 
-    $smartTable.on("st.reset.filters", resetFilters);
+    $smartTable.on("st.reset.filters", async function() {
+      resetFilters(false);
+    });
     
     $ths.each(function () {
       const field = $(this).data("stField");
@@ -746,7 +750,6 @@
           [excludeOrInclude === "include" ? "exclude" : "include"]: []
         })
       }
-      await showRows();
     });
 
     $menu.on("click", ".smart-table__menu-value-check-all", function () {
