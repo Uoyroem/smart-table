@@ -902,10 +902,16 @@ function smartTableOrderRows(rows, order) {
           [value1, value2] = [value2, value1];
         }
         let result = null;
-        if (typeof value1 === "number" && typeof value2 === "number") {
+        if (value1 == value2) {
+          result = 0;
+        } else if (value1 == null) {
+          result = -1;
+        } else if (value2 == null) {
+          result = 1;
+        } else if (typeof value1 === "number" && typeof value2 === "number") {
           result = value1 - value2;
         } else {
-          result = value1.toString().localeCompare(value2.toString());
+          result = `${value1}`.localeCompare(`${value2}`);
         }
         return previousValue ? previousValue || result : result;
       }, null);
