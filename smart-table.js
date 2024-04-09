@@ -281,7 +281,7 @@
             ${$(this).html()}
           </div>
           <div class="smart-table__menu-toggle-button-container">
-            <button class="smart-table__menu-toggle-button btn btn-sm" type="button">
+            <button class="smart-table__menu-toggle-button btn btn-sm text-black" type="button">
               <i class="fa-solid fa-caret-down"></i>
             </button>
           </div>
