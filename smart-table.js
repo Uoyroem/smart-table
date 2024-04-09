@@ -751,7 +751,7 @@
           type: getTypeByField(field),
           [excludeOrInclude]: values,
           [excludeOrInclude === "include" ? "exclude" : "include"]: []
-        })
+        });
       }
     });
 
