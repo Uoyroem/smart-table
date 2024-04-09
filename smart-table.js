@@ -736,6 +736,9 @@
       hideMenu();
     });
     $smartTable.on("st.update.fieldvalues", async function(event, excludeOrInclude, field, values) {
+      if (!["exclude", "include"].includes(excludeOrInclude)) {
+        throw Error("include or exclude must be provided");
+      }
       const fieldValues = fieldValuesList.find(
         fieldValues => fieldValues.field === field
       );
@@ -746,7 +749,7 @@
         fieldValuesList.push({
           field,
           type: getTypeByField(field),
-          excludeOrInclude: values,
+          [excludeOrInclude]: values,
           [excludeOrInclude === "include" ? "exclude" : "include"]: []
         })
       }
