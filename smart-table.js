@@ -31,7 +31,7 @@
   };
 
   $.fn.smartTableUpdateFieldValues = function (excludeOrInclude, field, values) {
-    $(this).trigger("st.update.fieldvalues", excludeOrInclude, field, values);
+    $(this).trigger("st.update.fieldvalues", [excludeOrInclude, field, values]);
   };
 
   $.fn.smartTable = function (options) {
