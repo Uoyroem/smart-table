@@ -26,6 +26,14 @@
     $(this).trigger("st.reload.rows");
   };
 
+  $.fn.smartTableResetFilters = function () {
+    $(this).trigger("st.reset.filters");
+  };
+
+  $.fn.smartTableUpdateFieldValues = function (excludeOrInclude, field, values) {
+    $(this).trigger("st.update.fieldvalues", excludeOrInclude, field, values);
+  };
+
   $.fn.smartTable = function (options) {
     const $smartTable = this;
     $smartTable.on("st.reload.rows", async function () {
@@ -52,13 +60,16 @@
         return JSON.parse(localStorage.getItem(key));
       }
     }
-    function getType(th) {
+    function getTypeFromTh(th) {
       let type = $(th).data("stType");
       if (!type) {
         type = "string";
         $(th).data("stType", type);
       }
       return type;
+    }
+    function getTypeByField(field) {
+      return getTypeFromTh($ths.filter(`[data-st-field="${field}"]`));
     }
     const $style = $("<style></style>").appendTo($smartTable);
     const styleSheet = $style.prop("sheet");
@@ -226,13 +237,16 @@
       ".smart-table__column-toggle-checkboxes",
       $settings
     );
-    $(".smart-table__reset-button", $settings).on("click", async function () {
+    async function resetFilters() {
       fieldValuesList = [];
       resetOrder();
       await showRows();
       $settings.dropdown("hide");
-    });
+    }
+    $(".smart-table__reset-button", $settings).on("click", resetFilters);
 
+    $smartTable.on("st.reset.filters", resetFilters);
+    
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
@@ -455,7 +469,7 @@
         </li>
       `);
       const field = $activeTh.data("stField");
-      const type = getType($activeTh);
+      const type = getTypeFromTh($activeTh);
       let values = await options.getValues(field, type, fieldValuesList);
       values = Array.from(
         new Set(
@@ -558,7 +572,7 @@
     function updateSubtotals() {
       $ths.each(async function () {
         const field = $(this).data("stField");
-        const type = getType(this);
+        const type = getTypeFromTh(this);
         const subtotalTh = $(
           `thead th[data-st-subtotal]:nth-child(${$(this).index() + 1})`,
           $smartTable
@@ -605,7 +619,7 @@
       $("thead th", $smartTable).data("sort", null);
       for (const fieldSort of order) {
         const th = $(`thead th[data-st-field="${fieldSort.field}"]`);
-        fieldSort["type"] = getType(th);
+        fieldSort["type"] = getTypeFromTh(th);
         th.data("sort", fieldSort.sort);
       }
     }
@@ -613,7 +627,7 @@
     let newOrder = null;
     function changeOrder() {
       const field = $activeTh.data("stField");
-      const type = getType($activeTh);
+      const type = getTypeFromTh($activeTh);
       const sort = $activeTh.data("newSort");
       const fieldSort = newOrder.find((fieldSort) => fieldSort.field == field);
       let index = null;
@@ -677,7 +691,7 @@
         $menu
       );
       const fieldValues = fieldValuesList.find(
-        (fieldValues) => fieldValues.field === field
+        fieldValues => fieldValues.field === field
       );
       if (unmatchedCheckboxes.length === 0) {
         if (fieldValues) {
@@ -716,6 +730,23 @@
       }
       await showRows();
       hideMenu();
+    });
+    $smartTable.on("st.update.fieldvalues", async function(event, excludeOrInclude, field, values) {
+      const fieldValues = fieldValuesList.find(
+        fieldValues => fieldValues.field === field
+      );
+      if (fieldValues) {
+        fieldValues[excludeOrInclude] = values;
+        fieldValues[excludeOrInclude === "include" ? "exclude" : "include"] = [];
+      } else {
+        fieldValuesList.push({
+          field,
+          type: getTypeByField(field),
+          excludeOrInclude: values,
+          [excludeOrInclude === "include" ? "exclude" : "include"]: []
+        })
+      }
+      await showRows();
     });
 
     $menu.on("click", ".smart-table__menu-value-check-all", function () {
