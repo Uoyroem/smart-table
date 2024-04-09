@@ -753,6 +753,7 @@
           [excludeOrInclude === "include" ? "exclude" : "include"]: []
         });
       }
+      console.log(fieldValuesList);
     });
 
     $menu.on("click", ".smart-table__menu-value-check-all", function () {
