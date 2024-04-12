@@ -364,10 +364,10 @@
       activeMenuToggleButton = this;
       const offset = $(this).offset();
       offset.top += $(this).outerHeight() + 2;
-      console.log(window.innerWidth, offset.left + $menu.outerWidth())
+      console.log(window.innerWidth, offset.left + $menu.outerWidth());
       if (offset.left + $menu.outerWidth() > window.innerWidth) {
         offset.left -= $menu.outerWidth() - $(this).outerWidth();
-      } 
+      }
       $menu.css(offset);
       $menu.addClass("show");
       onMenuShown.call(this);
@@ -725,7 +725,9 @@
     $menu.on("click", ".smart-table__menu-value-uncheck-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
-    showRows(true);
+    if (!("showRowsImmediately" in options) || options.showRowsImmediately) {
+      showRows(true);
+    }
   };
 
   $.fn.smartTableWithVirtualScroll = function (options) {
