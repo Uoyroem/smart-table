@@ -26,6 +26,14 @@
     $(this).trigger("st.reload.rows");
   };
 
+  $.fn.smartTableResetFilters = function () {
+    $(this).trigger("st.reset.filters");
+  };
+
+  $.fn.smartTableUpdateFieldValues = function (excludeOrInclude, field, values) {
+    $(this).trigger("st.update.fieldvalues", [excludeOrInclude, field, values]);
+  };
+
   $.fn.smartTable = function (options) {
     const $smartTable = this;
     $smartTable.on("st.reload.rows", async function () {
@@ -52,13 +60,16 @@
         return JSON.parse(localStorage.getItem(key));
       }
     }
-    function getType(th) {
+    function getTypeFromTh(th) {
       let type = $(th).data("stType");
       if (!type) {
         type = "string";
         $(th).data("stType", type);
       }
       return type;
+    }
+    function getTypeByField(field) {
+      return getTypeFromTh($ths.filter(`[data-st-field="${field}"]`));
     }
     const $style = $("<style></style>").appendTo($smartTable);
     const styleSheet = $style.prop("sheet");
@@ -226,13 +237,20 @@
       ".smart-table__column-toggle-checkboxes",
       $settings
     );
-    $(".smart-table__reset-button", $settings).on("click", async function () {
+    async function resetFilters(reload = true) {
       fieldValuesList = [];
       resetOrder();
-      await showRows();
+      if (reload) {
+        await showRows();
+      }
       $settings.dropdown("hide");
-    });
+    }
+    $(".smart-table__reset-button", $settings).on("click", resetFilters);
 
+    $smartTable.on("st.reset.filters", async function() {
+      resetFilters(false);
+    });
+    
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
@@ -281,7 +299,7 @@
             ${$(this).html()}
           </div>
           <div class="smart-table__menu-toggle-button-container">
-            <button class="smart-table__menu-toggle-button btn btn-sm" type="button">
+            <button class="smart-table__menu-toggle-button btn btn-sm text-black" type="button">
               <i class="fa-solid fa-caret-down"></i>
             </button>
           </div>
@@ -455,7 +473,7 @@
         </li>
       `);
       const field = $activeTh.data("stField");
-      const type = getType($activeTh);
+      const type = getTypeFromTh($activeTh);
       let values = await options.getValues(field, type, fieldValuesList);
       values = Array.from(
         new Set(
@@ -558,7 +576,7 @@
     function updateSubtotals() {
       $ths.each(async function () {
         const field = $(this).data("stField");
-        const type = getType(this);
+        const type = getTypeFromTh(this);
         const subtotalTh = $(
           `thead th[data-st-subtotal]:nth-child(${$(this).index() + 1})`,
           $smartTable
@@ -605,7 +623,7 @@
       $("thead th", $smartTable).data("sort", null);
       for (const fieldSort of order) {
         const th = $(`thead th[data-st-field="${fieldSort.field}"]`);
-        fieldSort["type"] = getType(th);
+        fieldSort["type"] = getTypeFromTh(th);
         th.data("sort", fieldSort.sort);
       }
     }
@@ -613,7 +631,7 @@
     let newOrder = null;
     function changeOrder() {
       const field = $activeTh.data("stField");
-      const type = getType($activeTh);
+      const type = getTypeFromTh($activeTh);
       const sort = $activeTh.data("newSort");
       const fieldSort = newOrder.find((fieldSort) => fieldSort.field == field);
       let index = null;
@@ -677,7 +695,7 @@
         $menu
       );
       const fieldValues = fieldValuesList.find(
-        (fieldValues) => fieldValues.field === field
+        fieldValues => fieldValues.field === field
       );
       if (unmatchedCheckboxes.length === 0) {
         if (fieldValues) {
@@ -716,6 +734,26 @@
       }
       await showRows();
       hideMenu();
+    });
+    $smartTable.on("st.update.fieldvalues", async function(event, excludeOrInclude, field, values) {
+      if (!["exclude", "include"].includes(excludeOrInclude)) {
+        throw Error("include or exclude must be provided");
+      }
+      const fieldValues = fieldValuesList.find(
+        fieldValues => fieldValues.field === field
+      );
+      if (fieldValues) {
+        fieldValues[excludeOrInclude] = values;
+        fieldValues[excludeOrInclude === "include" ? "exclude" : "include"] = [];
+      } else {
+        fieldValuesList.push({
+          field,
+          type: getTypeByField(field),
+          [excludeOrInclude]: values,
+          [excludeOrInclude === "include" ? "exclude" : "include"]: []
+        });
+      }
+      console.log(fieldValuesList);
     });
 
     $menu.on("click", ".smart-table__menu-value-check-all", function () {
@@ -904,10 +942,16 @@ function smartTableOrderRows(rows, order) {
           [value1, value2] = [value2, value1];
         }
         let result = null;
-        if (typeof value1 === "number" && typeof value2 === "number") {
+        if (value1 == value2) {
+          result = 0;
+        } else if (value1 == null) {
+          result = -1;
+        } else if (value2 == null) {
+          result = 1;
+        } else if (typeof value1 === "number" && typeof value2 === "number") {
           result = value1 - value2;
         } else {
-          result = value1.toString().localeCompare(value2.toString());
+          result = `${value1}`.localeCompare(`${value2}`);
         }
         return previousValue ? previousValue || result : result;
       }, null);
