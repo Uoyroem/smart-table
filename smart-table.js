@@ -30,7 +30,11 @@
     $(this).trigger("st.reset.filters");
   };
 
-  $.fn.smartTableUpdateFieldValues = function (excludeOrInclude, field, values) {
+  $.fn.smartTableUpdateFieldValues = function (
+    excludeOrInclude,
+    field,
+    values
+  ) {
     $(this).trigger("st.update.fieldvalues", [excludeOrInclude, field, values]);
   };
 
@@ -247,10 +251,10 @@
     }
     $(".smart-table__reset-button", $settings).on("click", resetFilters);
 
-    $smartTable.on("st.reset.filters", async function() {
+    $smartTable.on("st.reset.filters", async function () {
       resetFilters(false);
     });
-    
+
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
@@ -333,7 +337,9 @@
               Сбросить
             </button>
             <div class="position-relative mb-2">
-              <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
+              <form class="smart-table__menu-value-search-form">
+                <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
+              </form>
               
                 
               <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
@@ -430,8 +436,14 @@
     }
 
     $menu.on("input", ".smart-table__menu-value-search-input", function () {
-      $activeTh.data("search-query", $(this).val());
       showSearchQueryResults();
+    });
+
+    $menu.on("submit", ".smart-table__menu-value-search-form", function (event) {
+      event.preventDefault();
+      getSearchQueryValueCheckboxes().prop("checked", true);
+      getSearchQueryValueCheckboxes(false).prop("checked", false);
+      submit();
     });
 
     let fieldValuesList = [];
@@ -457,7 +469,7 @@
         ".smart-table__menu-value-search-input",
         $menu
       );
-      $menuSearchInput.val($activeTh.data("search-query"));
+      $menuSearchInput.val(null);
       $activeTh.data("newSort", $activeTh.data("sort"));
       changeSortIcon();
       changeOrder();
@@ -681,7 +693,7 @@
       updateSubtotals();
     }
 
-    $menu.on("click", ".submit-button", async function () {
+    async function submit() {
       $activeTh.data("sort", $activeTh.data("newSort"));
       order = newOrder;
       const field = $activeTh.data("stField");
@@ -695,7 +707,7 @@
         $menu
       );
       const fieldValues = fieldValuesList.find(
-        fieldValues => fieldValues.field === field
+        (fieldValues) => fieldValues.field === field
       );
       if (unmatchedCheckboxes.length === 0) {
         if (fieldValues) {
@@ -734,27 +746,33 @@
       }
       await showRows();
       hideMenu();
-    });
-    $smartTable.on("st.update.fieldvalues", async function(event, excludeOrInclude, field, values) {
-      if (!["exclude", "include"].includes(excludeOrInclude)) {
-        throw Error("include or exclude must be provided");
+    }
+
+    $menu.on("click", ".submit-button", submit);
+    $smartTable.on(
+      "st.update.fieldvalues",
+      async function (event, excludeOrInclude, field, values) {
+        if (!["exclude", "include"].includes(excludeOrInclude)) {
+          throw Error("include or exclude must be provided");
+        }
+        const fieldValues = fieldValuesList.find(
+          (fieldValues) => fieldValues.field === field
+        );
+        if (fieldValues) {
+          fieldValues[excludeOrInclude] = values;
+          fieldValues[excludeOrInclude === "include" ? "exclude" : "include"] =
+            [];
+        } else {
+          fieldValuesList.push({
+            field,
+            type: getTypeByField(field),
+            [excludeOrInclude]: values,
+            [excludeOrInclude === "include" ? "exclude" : "include"]: [],
+          });
+        }
+        console.log(fieldValuesList);
       }
-      const fieldValues = fieldValuesList.find(
-        fieldValues => fieldValues.field === field
-      );
-      if (fieldValues) {
-        fieldValues[excludeOrInclude] = values;
-        fieldValues[excludeOrInclude === "include" ? "exclude" : "include"] = [];
-      } else {
-        fieldValuesList.push({
-          field,
-          type: getTypeByField(field),
-          [excludeOrInclude]: values,
-          [excludeOrInclude === "include" ? "exclude" : "include"]: []
-        });
-      }
-      console.log(fieldValuesList);
-    });
+    );
 
     $menu.on("click", ".smart-table__menu-value-check-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", true);
