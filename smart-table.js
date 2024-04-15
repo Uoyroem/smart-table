@@ -593,33 +593,35 @@
     }
 
     async function updateSubtotals(fields = null) {
-      const fieldSubtotal = getFieldSubtotal(fields);
-      const fieldType = getFieldType(fields);
-      try {
-        const fieldResult = await options.getSubtotals(
-          fieldValuesList,
-          fieldType,
-          fieldSubtotal
-        );
-        $ths.each(function () {
-          const field = $(this).data("stField");
-          const type = getTypeFromTh(this);
-          const $subtotal = getThSubtotal(this);
-          if ($subtotal.length === 0) {
-            return;
-          }
-          const subtotal = $subtotal.data("stSubtotal");
-          if (!subtotal) {
-            return;
-          }
-          let result = fieldResult[field];
-          if (subtotal == 9) {
-            result = formatValue(result, type);
-          }
-          $subtotal.html(result);
-        });
-      } catch (error) {
-        console.error(error);
+      if (options.getSubtotals) {
+        const fieldSubtotal = getFieldSubtotal(fields);
+        const fieldType = getFieldType(fields);
+        try {
+          const fieldResult = await options.getSubtotals(
+            fieldValuesList,
+            fieldType,
+            fieldSubtotal
+          );
+          $ths.each(function () {
+            const field = $(this).data("stField");
+            const type = getTypeFromTh(this);
+            const $subtotal = getThSubtotal(this);
+            if ($subtotal.length === 0) {
+              return;
+            }
+            const subtotal = $subtotal.data("stSubtotal");
+            if (!subtotal) {
+              return;
+            }
+            let result = fieldResult[field];
+            if (subtotal == 9) {
+              result = formatValue(result, type);
+            }
+            $subtotal.html(result);
+          });
+        } catch (error) {
+          console.error(error);
+        }
       }
     }
 
