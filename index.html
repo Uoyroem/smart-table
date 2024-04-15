@@ -15,7 +15,7 @@
 
 <body>
     <div class="container">
-
+        <div class="div" style="height: 150vh;"></div>
 
         <table id="some-table" class="table table-bordered">
             <thead>
@@ -55,7 +55,7 @@
     <script>
         $("#some-table").smartTableWithVirtualScroll({
             name: "mandatory-payment-seizure",
-            showRowsImmediately: true,
+            firstShowRows: "intersected",
             activeColumns: [],
             defaultOrder: [{"field": "datetime", "sort": "desc"}],
             unloadTypes: [

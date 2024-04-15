@@ -802,7 +802,7 @@
       "st.update.fieldvalues",
       async function (event, excludeOrInclude, field, values) {
         if (!["exclude", "include"].includes(excludeOrInclude)) {
-          throw Error("include or exclude must be provided");
+          throw Error("include or exclude");
         }
         const fieldValues = fieldValuesList.find(
           (fieldValues) => fieldValues.field === field
@@ -819,7 +819,6 @@
             [excludeOrInclude === "include" ? "exclude" : "include"]: [],
           });
         }
-        console.log(fieldValuesList);
       }
     );
 
@@ -830,7 +829,22 @@
     $menu.on("click", ".smart-table__menu-value-uncheck-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
-    if (!("showRowsImmediately" in options) || options.showRowsImmediately) {
+
+    if ("firstShowRows" in options) {
+      switch (options.firstShowRows) {
+        case "intersected":
+          const observer = new IntersectionObserver(function(entries, observer) {
+            if (entries[0].isIntersecting) {
+              showRows();
+              observer.disconnect();
+            }
+          });
+          observer.observe($smartTable[0]);
+          break;
+        case "immediately":
+          showRows(true);
+      }
+    } else {
       showRows(true);
     }
   };
