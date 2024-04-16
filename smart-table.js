@@ -22,8 +22,8 @@
     $(this).trigger("st.reload.subtotals");
   };
 
-  $.fn.smartTableReload = function () {
-    $(this).trigger("st.reload.rows");
+  $.fn.smartTableReload = function (reload = null) {
+    $(this).trigger("st.reload.rows", [reload]);
   };
 
   $.fn.smartTableResetFilters = function () {
@@ -36,7 +36,7 @@
 
   $.fn.smartTable = function (options) {
     const $smartTable = this;
-    $smartTable.on("st.reload.rows", async function () {
+    $smartTable.on("st.reload.rows", async function (event, reload) {
       await showRows(true);
     });
     $smartTable.on("st.reload.subtotals", function () {
