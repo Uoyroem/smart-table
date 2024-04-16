@@ -18,8 +18,8 @@
     return filename;
   }
 
-  $.fn.smartTableUpdateSubtotals = function () {
-    $(this).trigger("st.reload.subtotals");
+  $.fn.smartTableUpdateSubtotals = function (fields = null) {
+    $(this).trigger("st.reload.subtotals", [fields]);
   };
 
   $.fn.smartTableReload = function (reload = null) {
@@ -30,7 +30,11 @@
     $(this).trigger("st.reset.filters");
   };
 
-  $.fn.smartTableUpdateFieldValues = function (excludeOrInclude, field, values) {
+  $.fn.smartTableUpdateFieldValues = function (
+    excludeOrInclude,
+    field,
+    values
+  ) {
     $(this).trigger("st.update.fieldvalues", [excludeOrInclude, field, values]);
   };
 
@@ -174,12 +178,14 @@
         $unloadButton.find(".fa-solid").addClass("fa-fade");
         $unloadCancelButton.removeClass("d-none");
         unloadAbortController = new AbortController();
+        const fieldType = getFieldType();
         try {
           const response = await fetch(options.unloadUrl, {
             method: "POST",
             body: JSON.stringify({
               order,
               fieldValuesList,
+              fieldType,
               type,
             }),
             headers: {
@@ -247,10 +253,10 @@
     }
     $(".smart-table__reset-button", $settings).on("click", resetFilters);
 
-    $smartTable.on("st.reset.filters", async function() {
+    $smartTable.on("st.reset.filters", async function () {
       resetFilters(false);
     });
-    
+
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
@@ -333,7 +339,9 @@
               Сбросить
             </button>
             <div class="position-relative mb-2">
-              <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
+              <form class="smart-table__menu-value-search-form">
+                <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
+              </form>
               
                 
               <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
@@ -382,10 +390,10 @@
       activeMenuToggleButton = this;
       const offset = $(this).offset();
       offset.top += $(this).outerHeight() + 2;
-      console.log(window.innerWidth, offset.left + $menu.outerWidth())
+      console.log(window.innerWidth, offset.left + $menu.outerWidth());
       if (offset.left + $menu.outerWidth() > window.innerWidth) {
         offset.left -= $menu.outerWidth() - $(this).outerWidth();
-      } 
+      }
       $menu.css(offset);
       $menu.addClass("show");
       onMenuShown.call(this);
@@ -430,9 +438,19 @@
     }
 
     $menu.on("input", ".smart-table__menu-value-search-input", function () {
-      $activeTh.data("search-query", $(this).val());
       showSearchQueryResults();
     });
+
+    $menu.on(
+      "submit",
+      ".smart-table__menu-value-search-form",
+      function (event) {
+        event.preventDefault();
+        getSearchQueryValueCheckboxes().prop("checked", true);
+        getSearchQueryValueCheckboxes(false).prop("checked", false);
+        submit();
+      }
+    );
 
     let fieldValuesList = [];
     let indexValue = {};
@@ -457,7 +475,7 @@
         ".smart-table__menu-value-search-input",
         $menu
       );
-      $menuSearchInput.val($activeTh.data("search-query"));
+      $menuSearchInput.val(null);
       $activeTh.data("newSort", $activeTh.data("sort"));
       changeSortIcon();
       changeOrder();
@@ -474,7 +492,8 @@
       `);
       const field = $activeTh.data("stField");
       const type = getTypeFromTh($activeTh);
-      let values = await options.getValues(field, type, fieldValuesList);
+      const fieldType = getFieldType();
+      let values = await options.getValues(field, fieldType, fieldValuesList);
       values = Array.from(
         new Set(
           Array.from(values).map(function (value) {
@@ -573,34 +592,37 @@
       }
     }
 
-    function updateSubtotals() {
-      $ths.each(async function () {
-        const field = $(this).data("stField");
-        const type = getTypeFromTh(this);
-        const subtotalTh = $(
-          `thead th[data-st-subtotal]:nth-child(${$(this).index() + 1})`,
-          $smartTable
-        );
-        if (subtotalTh.length !== 0) {
-          const subtotal = subtotalTh.data("stSubtotal");
-          let subtotalResult = null;
-
-          try {
-            subtotalResult = await options.getSubtotal(
-              field,
-              type,
-              subtotal,
-              fieldValuesList
-            );
-          } catch (error) {
-            console.error(error);
-          }
-          if (subtotal == 9) {
-            subtotalResult = formatValue(subtotalResult, type);
-          }
-          subtotalTh.html(subtotalResult);
+    async function updateSubtotals(fields = null) {
+      if (options.getSubtotals) {
+        const fieldSubtotal = getFieldSubtotal(fields);
+        const fieldType = getFieldType(fields);
+        try {
+          const fieldResult = await options.getSubtotals(
+            fieldValuesList,
+            fieldType,
+            fieldSubtotal
+          );
+          $ths.each(function () {
+            const field = $(this).data("stField");
+            const type = getTypeFromTh(this);
+            const $subtotal = getThSubtotal(this);
+            if ($subtotal.length === 0) {
+              return;
+            }
+            const subtotal = $subtotal.data("stSubtotal");
+            if (!subtotal) {
+              return;
+            }
+            let result = fieldResult[field];
+            if (subtotal == 9) {
+              result = formatValue(result, type);
+            }
+            $subtotal.html(result);
+          });
+        } catch (error) {
+          console.error(error);
         }
-      });
+      }
     }
 
     function changeSortIcon() {
@@ -671,9 +693,50 @@
       hideMenu();
     });
 
+    function getThSubtotal(th) {
+      return $(
+        `thead th[data-st-subtotal]:nth-child(${$(th).index() + 1})`,
+        $smartTable
+      );
+    }
+
+    function getFieldSubtotal(fields = null) {
+      const fieldSubtotal = {};
+      $ths.each(async function () {
+        const field = $(this).data("stField");
+        if (fields && fields.includes(fields)) {
+          return;
+        }
+        const $subtotalTh = getThSubtotal(this);
+        if ($subtotalTh.length === 0) {
+          return;
+        }
+        const subtotal = $subtotalTh.data("stSubtotal");
+        if (!subtotal) {
+          return;
+        }
+        fieldSubtotal[field] = subtotal;
+      });
+      return fieldSubtotal;
+    }
+
+    function getFieldType(fields = null) {
+      const fieldType = {};
+      $ths.each(function () {
+        const field = $(this).data("stField");
+        const type = getTypeFromTh(this);
+        if (fields && fields.includes(field)) {
+          return;
+        }
+        fieldType[field] = type;
+      });
+      return fieldType;
+    }
+
     async function showRows(forceReset = false) {
+      const fieldType = getFieldType();
       try {
-        await options.showRows(fieldValuesList, order, forceReset);
+        await options.showRows(fieldValuesList, fieldType, order, forceReset);
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);
@@ -681,7 +744,7 @@
       updateSubtotals();
     }
 
-    $menu.on("click", ".submit-button", async function () {
+    async function submit() {
       $activeTh.data("sort", $activeTh.data("newSort"));
       order = newOrder;
       const field = $activeTh.data("stField");
@@ -695,7 +758,7 @@
         $menu
       );
       const fieldValues = fieldValuesList.find(
-        fieldValues => fieldValues.field === field
+        (fieldValues) => fieldValues.field === field
       );
       if (unmatchedCheckboxes.length === 0) {
         if (fieldValues) {
@@ -734,27 +797,32 @@
       }
       await showRows();
       hideMenu();
-    });
-    $smartTable.on("st.update.fieldvalues", async function(event, excludeOrInclude, field, values) {
-      if (!["exclude", "include"].includes(excludeOrInclude)) {
-        throw Error("include or exclude must be provided");
+    }
+
+    $menu.on("click", ".submit-button", submit);
+    $smartTable.on(
+      "st.update.fieldvalues",
+      async function (event, excludeOrInclude, field, values) {
+        if (!["exclude", "include"].includes(excludeOrInclude)) {
+          throw Error("include or exclude");
+        }
+        const fieldValues = fieldValuesList.find(
+          (fieldValues) => fieldValues.field === field
+        );
+        if (fieldValues) {
+          fieldValues[excludeOrInclude] = values;
+          fieldValues[excludeOrInclude === "include" ? "exclude" : "include"] =
+            [];
+        } else {
+          fieldValuesList.push({
+            field,
+            type: getTypeByField(field),
+            [excludeOrInclude]: values,
+            [excludeOrInclude === "include" ? "exclude" : "include"]: [],
+          });
+        }
       }
-      const fieldValues = fieldValuesList.find(
-        fieldValues => fieldValues.field === field
-      );
-      if (fieldValues) {
-        fieldValues[excludeOrInclude] = values;
-        fieldValues[excludeOrInclude === "include" ? "exclude" : "include"] = [];
-      } else {
-        fieldValuesList.push({
-          field,
-          type: getTypeByField(field),
-          [excludeOrInclude]: values,
-          [excludeOrInclude === "include" ? "exclude" : "include"]: []
-        });
-      }
-      console.log(fieldValuesList);
-    });
+    );
 
     $menu.on("click", ".smart-table__menu-value-check-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", true);
@@ -763,17 +831,34 @@
     $menu.on("click", ".smart-table__menu-value-uncheck-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
-    showRows(true);
+
+    if ("firstShowRows" in options) {
+      switch (options.firstShowRows) {
+        case "intersected":
+          const observer = new IntersectionObserver(function(entries, observer) {
+            if (entries[0].isIntersecting) {
+              showRows();
+              observer.disconnect();
+            }
+          });
+          observer.observe($smartTable[0]);
+          break;
+        case "immediately":
+          showRows(true);
+      }
+    } else {
+      showRows(true);
+    }
   };
 
   $.fn.smartTableWithVirtualScroll = function (options) {
     this.smartTable({
-      async getValues(field, type, fieldValuesList) {
+      async getValues(field, fieldType, fieldValuesList) {
         const response = await fetch(options.getValuesUrl, {
           method: "POST",
           body: JSON.stringify({
             field,
-            type,
+            fieldType,
             fieldValuesList,
           }),
           headers: {
@@ -786,12 +871,13 @@
       reset() {
         this.next = options.getRowsUrl;
       },
-      async getRows(fieldValuesList, order) {
+      async getRows(fieldValuesList, fieldType, order) {
         if (this.next) {
           const response = await fetch(this.next, {
             method: "POST",
             body: JSON.stringify({
               fieldValuesList,
+              fieldType,
               order,
             }),
             headers: {
@@ -804,10 +890,10 @@
         }
         return null;
       },
-      async insertRows(fieldValuesList, order) {
+      async insertRows(fieldValuesList, fieldType, order) {
         const $lastRow = $(options.lastRowTarget);
         const $loadingTr = $lastRow.before(options.loadingHtml).prev();
-        const rows = await this.getRows(fieldValuesList, order);
+        const rows = await this.getRows(fieldValuesList, fieldType, order);
         $loadingTr.remove();
         if (rows) {
           for (const row of rows) {
@@ -815,7 +901,7 @@
           }
         }
       },
-      async showRows(fieldValuesList, order) {
+      async showRows(fieldValuesList, fieldType, order) {
         if (this.observer) {
           this.observer.unobserve($(options.lastRowTarget)[0]);
         }
@@ -824,30 +910,29 @@
         const observer = new IntersectionObserver(async (entries, observer) => {
           if (entries[0].isIntersecting) {
             observer.unobserve($(options.lastRowTarget)[0]);
-            await this.insertRows(fieldValuesList, order);
+            await this.insertRows(fieldValuesList, fieldType, order);
             observer.observe($(options.lastRowTarget)[0]);
           }
         });
         this.observer = observer;
         this.reset();
-        await this.insertRows(fieldValuesList, order);
+        await this.insertRows(fieldValuesList, fieldType, order);
         observer.observe($(options.lastRowTarget)[0]);
       },
-      async getSubtotal(field, type, subtotal, fieldValuesList) {
-        const response = await fetch(this.getSubtotalUrl, {
+      async getSubtotals(fieldValuesList, fieldType, fieldSubtotal) {
+        const response = await fetch(this.getSubtotalsUrl, {
           method: "POST",
           body: JSON.stringify({
             fieldValuesList,
-            field,
-            type,
-            subtotal,
+            fieldType,
+            fieldSubtotal,
           }),
           headers: {
             "X-CSRFToken": options.csrfToken,
           },
         });
-        const data = await response.json();
-        return data.subtotalResult;
+        const json = await response.json();
+        return json.fieldResult;
       },
       ...options,
     });
@@ -862,12 +947,11 @@ function smartTableParseValue(value, type) {
   return value;
 }
 
-function smartTableToType(rows, field, type) {
-  if (!rows || rows.length === 0) {
-    return [];
-  }
+function smartTableConvert(rows, fieldType) {
   return JSON.parse(JSON.stringify(rows)).map((row) => {
-    row[field] = smartTableParseValue(row[field], type);
+    for (const [field, type] of Object.entries(fieldType)) {
+      row[field] = smartTableParseValue(row[field], type);
+    }
     return row;
   });
 }
@@ -899,34 +983,57 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
   return filteredRows;
 }
 
-function smartTableGetValues(rows, field, type, fieldValuesList) {
-  return smartTableToType(
-    smartTableFilterRows(rows, fieldValuesList, field),
-    field,
-    type
+function smartTableGetRows(rows, fieldValuesList, fieldType, order) {
+  if (!rows || rows.length === 0) {
+    return [];
+  }
+  return smartTableOrderRows(
+    smartTableFilterRows(smartTableConvert(rows, fieldType), fieldValuesList),
+    order
+  );
+}
+
+function smartTableGetValues(rows, field, fieldType, fieldValuesList) {
+  if (!rows || rows.length === 0) {
+    return [];
+  }
+  return smartTableFilterRows(
+    smartTableConvert(rows, fieldType),
+    fieldValuesList,
+    field
   ).map((row) => row[field]);
 }
 
-function smartTableGetSubtotal(rows, field, type, subtotal, fieldValuesList) {
+function smartTableGetSubtotals(
+  rows,
+  fieldValuesList,
+  fieldType,
+  fieldSubtotal
+) {
   if (!rows || rows.length === 0) {
     return 0;
   }
-  switch (subtotal) {
-    case 2:
-      return smartTableToType(
-        smartTableFilterRows(rows, fieldValuesList),
-        field,
-        type
-      ).filter((row) => row[field]).length;
-    case 9:
-      return smartTableToType(
-        smartTableFilterRows(rows, fieldValuesList),
-        field,
-        type
-      ).reduce((sum, row) => sum + (parseFloat(row[field]) || 0), 0);
-    default:
-      return 0;
+  rows = smartTableFilterRows(
+    smartTableConvert(rows, fieldType),
+    fieldValuesList
+  );
+  const fieldResult = {};
+  for (const [field, subtotal] of Object.entries(fieldSubtotal)) {
+    switch (subtotal) {
+      case 2:
+        fieldResult[field] = rows.filter((row) => row[field]).length;
+        break;
+      case 9:
+        fieldResult[field] = rows.reduce(
+          (sum, row) => sum + (parseFloat(row[field]) || 0),
+          0
+        );
+        break;
+      default:
+        fieldResult[field] = 0;
+    }
   }
+  return fieldResult;
 }
 
 function smartTableOrderRows(rows, order) {
