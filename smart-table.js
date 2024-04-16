@@ -22,8 +22,8 @@
     $(this).trigger("st.reload.subtotals", [fields]);
   };
 
-  $.fn.smartTableReload = function (reload = null) {
-    $(this).trigger("st.reload.rows", [reload]);
+  $.fn.smartTableReload = function (reloadType = null) {
+    $(this).trigger("st.reload.rows", [reloadType]);
   };
 
   $.fn.smartTableResetFilters = function () {
@@ -40,8 +40,27 @@
 
   $.fn.smartTable = function (options) {
     const $smartTable = this;
-    $smartTable.on("st.reload.rows", async function (event, reload) {
-      await showRows(true);
+    function reload(type = null) {
+      if (type) {
+        switch (options.firstShowRows) {
+          case "intersected":
+            const observer = new IntersectionObserver(function(entries, observer) {
+              if (entries[0].isIntersecting) {
+                showRows(true);
+                observer.disconnect();
+              }
+            });
+            observer.observe($smartTable[0]);
+            break;
+          case "immediately":
+            showRows(true);
+        }
+      } else {
+        showRows(true);
+      }
+    }
+    $smartTable.on("st.reload.rows", async function (event, reloadType) {
+      reload(reloadType);
     });
     $smartTable.on("st.reload.subtotals", function () {
       updateSubtotals();
@@ -831,24 +850,7 @@
     $menu.on("click", ".smart-table__menu-value-uncheck-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
-
-    if ("firstShowRows" in options) {
-      switch (options.firstShowRows) {
-        case "intersected":
-          const observer = new IntersectionObserver(function(entries, observer) {
-            if (entries[0].isIntersecting) {
-              showRows();
-              observer.disconnect();
-            }
-          });
-          observer.observe($smartTable[0]);
-          break;
-        case "immediately":
-          showRows(true);
-      }
-    } else {
-      showRows(true);
-    }
+    reload(options.firstShowRows);
   };
 
   $.fn.smartTableWithVirtualScroll = function (options) {
