@@ -26,8 +26,8 @@
     $(this).trigger("st.reload.rows", [reloadType]);
   };
 
-  $.fn.smartTableResetFilters = function () {
-    $(this).trigger("st.reset.filters");
+  $.fn.smartTableResetFilters = function (withReload = false) {
+    $(this).trigger("st.reset.filters", [withReload]);
   };
 
   $.fn.smartTableUpdateFieldValues = function (
@@ -40,27 +40,41 @@
 
   $.fn.smartTable = function (options) {
     const $smartTable = this;
-    function reload(type = null) {
-      if (type) {
-        switch (options.firstShowRows) {
+    let reloading = false;
+    async function reload(options = { type: null, force: false }) {
+      if (reloading) {
+        return;
+      }
+
+      reloading = true;
+      $reloadButton.prop("disabled", true);
+      $reloadButton.find(".fa-solid").addClass("fa-spin");
+      if (options.type) {
+        switch (options.type) {
           case "intersected":
-            const observer = new IntersectionObserver(function(entries, observer) {
-              if (entries[0].isIntersecting) {
-                showRows(true);
-                observer.disconnect();
-              }
+            await new Promise((resolve, reject) => {
+              const observer = new IntersectionObserver(function (entries, observer) {
+                if (entries[0].isIntersecting) {
+                  showRows(options.force).then(resolve);
+                  observer.disconnect();
+                }
+              });
+              observer.observe($smartTable[0]);
             });
-            observer.observe($smartTable[0]);
             break;
           case "immediately":
-            showRows(true);
+            await showRows(options.force);
+            break;
         }
       } else {
-        showRows(true);
+        await showRows(options.force);
       }
+      $reloadButton.find(".fa-solid").removeClass("fa-spin");
+      $reloadButton.prop("disabled", false);
+      reloading = false;
     }
-    $smartTable.on("st.reload.rows", async function (event, reloadType) {
-      reload(reloadType);
+    $smartTable.on("st.reload.rows", function (event, reloadType) {
+      reload({ type: reloadType, force: true });
     });
     $smartTable.on("st.reload.subtotals", function () {
       updateSubtotals();
@@ -262,18 +276,18 @@
       ".smart-table__column-toggle-checkboxes",
       $settings
     );
-    async function resetFilters(reload = true) {
+    async function resetFilters(withReload = true) {
       fieldValuesList = [];
       resetOrder();
-      if (reload) {
-        await showRows();
+      if (withReload) {
+        await reload({ force: true });
       }
       $settings.dropdown("hide");
     }
     $(".smart-table__reset-button", $settings).on("click", resetFilters);
 
-    $smartTable.on("st.reset.filters", async function () {
-      resetFilters(false);
+    $smartTable.on("st.reset.filters", async function (event, withReload) {
+      resetFilters(withReload);
     });
 
     $ths.each(function () {
@@ -284,8 +298,8 @@
         <div class="form-check form-switch">
           <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}">
           <label class="form-check-label" for="${id}">${$(this)
-        .text()
-        .trim()}</label>
+          .text()
+          .trim()}</label>
         </div>
       `)
         .find(".smart-table__column-toggle-checkbox")
@@ -311,11 +325,7 @@
       $columnToggleCheckboxes.append(checkbox);
     });
     $reloadButton.on("click", async function () {
-      $(this).prop("disabled", true);
-      $(this).find(".fa-solid").addClass("fa-spin");
-      await showRows(true);
-      $(this).find(".fa-solid").removeClass("fa-spin");
-      $(this).prop("disabled", false);
+      await reload({ force: true });
     });
     $ths.each(function () {
       $(this).html(`
@@ -752,10 +762,10 @@
       return fieldType;
     }
 
-    async function showRows(forceReset = false) {
+    async function showRows(forceReload = false) {
       const fieldType = getFieldType();
       try {
-        await options.showRows(fieldValuesList, fieldType, order, forceReset);
+        await options.showRows(fieldValuesList, fieldType, order, forceReload);
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);
@@ -814,7 +824,7 @@
           });
         }
       }
-      await showRows();
+      await reload();
       hideMenu();
     }
 
@@ -850,7 +860,7 @@
     $menu.on("click", ".smart-table__menu-value-uncheck-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
-    reload(options.firstShowRows);
+    reload({ type: options.firstShowRows, force: true });
   };
 
   $.fn.smartTableWithVirtualScroll = function (options) {
@@ -973,11 +983,11 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
         ? value == null
           ? fieldValues.include.includes("")
           : fieldValues.include.some(
-              (item) => smartTableParseValue(item, fieldValues.type) == value
-            )
+            (item) => smartTableParseValue(item, fieldValues.type) == value
+          )
         : value == null
-        ? !fieldValues.exclude.includes("")
-        : !fieldValues.exclude.some(
+          ? !fieldValues.exclude.includes("")
+          : !fieldValues.exclude.some(
             (item) => smartTableParseValue(item, fieldValues.type) == value
           );
     });
