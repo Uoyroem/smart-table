@@ -22,7 +22,7 @@
 }
 
 .smart-table__menu-value-checkboxes {
-    max-height: 20em;
+    max-height: 10em;
     overflow-y: scroll;
 }
 
@@ -31,7 +31,7 @@
 }
 
 .smart-table__column-toggle-checkboxes {
-    max-height: 10em;
+    max-height: 20em;
     overflow-y: scroll;
 }
 
