@@ -864,6 +864,25 @@
   };
 
   $.fn.smartTableWithVirtualScroll = function (options) {
+    if (!options.rowsTarget) {
+      console.error(`Specify "rowsTarget" in options for`, this);
+      return;
+    }
+    const $rows = $(options.rowsTarget);
+    if ($rows.length === 0) {
+      console.error(`Rows element with selector "${options.rowsTarget}" missing, specify a valid selector in options for`, this);
+      return;
+    }
+    if (!options.lastRowTarget) {
+      console.error(`Specify "lastRowTarget" in options for`, this);
+      return;
+    }
+    const $lastRow = $(options.lastRowTarget);
+    if ($lastRow.length === 0) {
+      console.error(`Last row element with selector "${options.lastRowTarget}" missing, specify a valid selector in options for`, this);
+      return;
+    }
+
     this.smartTable({
       async getValues(field, fieldType, fieldValuesList) {
         const response = await fetch(options.getValuesUrl, {
@@ -903,7 +922,6 @@
         return null;
       },
       async insertRows(fieldValuesList, fieldType, order) {
-        const $lastRow = $(options.lastRowTarget);
         const $loadingTr = $lastRow.before(options.loadingHtml).prev();
         const rows = await this.getRows(fieldValuesList, fieldType, order);
         $loadingTr.remove();
@@ -917,8 +935,7 @@
         if (this.observer) {
           this.observer.unobserve($(options.lastRowTarget)[0]);
         }
-        const $rows = $(options.rowsTarget);
-        $("tr", $rows).not(options.lastRowTarget).remove();
+        $("tr", $rows).not($lastRow).remove();
         const observer = new IntersectionObserver(async (entries, observer) => {
           if (entries[0].isIntersecting) {
             observer.unobserve($(options.lastRowTarget)[0]);
