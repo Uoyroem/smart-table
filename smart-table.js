@@ -146,7 +146,7 @@
       setValue(activeColumnsKey, activeColumns);
     }
     const $settings = $(`
-      <div class="dropdown me-2 smart-table__settings">
+      <div class="dropdown smart-table__settings">
         <button class="btn btn-sm" title="Настройки таблицы - сброс фильтра, показать/скрыть столбец и т.п." data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fa-solid fa-gears"></i>
         </button>
@@ -168,12 +168,12 @@
       </div>
     `);
     const $reloadButton = $(`
-      <button type="button" title="Обновить таблицу" class="btn btn-sm smart-table__reload-button me-2">
+      <button type="button" title="Обновить таблицу" class="btn btn-sm smart-table__reload-button">
         <i class="fa-solid fa-sync"></i>
       </button>
     `);
     const $unload = $(`
-      <div class="d-flex">
+      <div class="d-flex gap-1">
         <div class="dropdown smart-table__unload">
           <button class="btn btn-sm dropdown-toggle smart-table__unload-button" type="button" title="Выгрузить данные из таблицы в виде файла" data-bs-toggle="dropdown" aria-expanded="false">
             <i class="fa-solid fa-upload"></i>
@@ -181,7 +181,7 @@
           <ul class="dropdown-menu smart-table__unload-types">
           </ul>
         </div>
-        <button class="btn btn-sm text-danger ms-1 smart-table__unload-cancel-button d-none">
+        <button class="btn btn-sm text-danger smart-table__unload-cancel-button d-none">
           Отмена
         </button>
       </div>
@@ -192,7 +192,7 @@
     );
 
     const $toolsContainer = $(`
-      <div class="d-flex mb-1">
+      <div class="d-flex align-items-center mb-1 gap-2">
       </div>
     `);
     $toolsContainer.append($settings);
@@ -270,6 +270,13 @@
         `);
       }
       $toolsContainer.append($unload);
+    }
+    if ("addTools" in options && typeof options.addTools === "function") {
+      try {
+        options.addTools($toolsContainer);
+      } catch (error) {
+        console.error(error);
+      }
     }
     $smartTable.before($toolsContainer);
     const $columnToggleCheckboxes = $(
