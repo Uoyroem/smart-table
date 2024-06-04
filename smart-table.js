@@ -831,8 +831,24 @@
           });
         }
       }
+      showFieldValuesPositions();
       await reload();
       hideMenu();
+    }
+
+    function showFieldValuesPositions() {
+      $ths.find(".smart-table__menu-toggle-button").html(`<i class="fa-solid fa-caret-down"></i>`);
+
+      let index = 1;
+      for (const fieldValues of fieldValuesList) {
+        $ths.filter(`[data-st-field="${fieldValues.field}"]`).find(".smart-table__menu-toggle-button").html(`
+          <div class="d-flex align-items-center text-danger">
+            <i class="fa-solid fa-filter"></i>
+            <span class="fw-bold">${index}</span> 
+          </div>
+        `);
+        index++;
+      }
     }
 
     $menu.on("click", ".submit-button", submit);
