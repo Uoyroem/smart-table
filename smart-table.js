@@ -285,6 +285,7 @@
     );
     async function resetFilters(withReload = true) {
       fieldValuesList = [];
+      showFieldValuesPositions();
       resetOrder();
       if (withReload) {
         await reload({ force: true });
@@ -873,6 +874,7 @@
             [excludeOrInclude === "include" ? "exclude" : "include"]: [],
           });
         }
+        showFieldValuesPositions();
       }
     );
 
