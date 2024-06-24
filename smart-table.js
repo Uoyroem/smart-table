@@ -1,4 +1,132 @@
 (function () {
+  const Base64 = {
+    // private property
+    _keyStr:
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",
+
+    // public method for encoding
+    encode: function (input) {
+      var output = "";
+      var chr1, chr2, chr3, enc1, enc2, enc3, enc4;
+      var i = 0;
+
+      input = Base64._utf8_encode(input);
+
+      while (i < input.length) {
+        chr1 = input.charCodeAt(i++);
+        chr2 = input.charCodeAt(i++);
+        chr3 = input.charCodeAt(i++);
+
+        enc1 = chr1 >> 2;
+        enc2 = ((chr1 & 3) << 4) | (chr2 >> 4);
+        enc3 = ((chr2 & 15) << 2) | (chr3 >> 6);
+        enc4 = chr3 & 63;
+
+        if (isNaN(chr2)) {
+          enc3 = enc4 = 64;
+        } else if (isNaN(chr3)) {
+          enc4 = 64;
+        }
+
+        output =
+          output +
+          this._keyStr.charAt(enc1) +
+          this._keyStr.charAt(enc2) +
+          this._keyStr.charAt(enc3) +
+          this._keyStr.charAt(enc4);
+      } // Whend
+
+      return output;
+    }, // End Function encode
+
+    // public method for decoding
+    decode: function (input) {
+      var output = "";
+      var chr1, chr2, chr3;
+      var enc1, enc2, enc3, enc4;
+      var i = 0;
+
+      input = input.replace(/[^A-Za-z0-9\+\/\=]/g, "");
+      while (i < input.length) {
+        enc1 = this._keyStr.indexOf(input.charAt(i++));
+        enc2 = this._keyStr.indexOf(input.charAt(i++));
+        enc3 = this._keyStr.indexOf(input.charAt(i++));
+        enc4 = this._keyStr.indexOf(input.charAt(i++));
+
+        chr1 = (enc1 << 2) | (enc2 >> 4);
+        chr2 = ((enc2 & 15) << 4) | (enc3 >> 2);
+        chr3 = ((enc3 & 3) << 6) | enc4;
+
+        output = output + String.fromCharCode(chr1);
+
+        if (enc3 != 64) {
+          output = output + String.fromCharCode(chr2);
+        }
+
+        if (enc4 != 64) {
+          output = output + String.fromCharCode(chr3);
+        }
+      } // Whend
+
+      output = Base64._utf8_decode(output);
+
+      return output;
+    }, // End Function decode
+
+    // private method for UTF-8 encoding
+    _utf8_encode: function (string) {
+      var utftext = "";
+      string = string.replace(/\r\n/g, "\n");
+
+      for (var n = 0; n < string.length; n++) {
+        var c = string.charCodeAt(n);
+
+        if (c < 128) {
+          utftext += String.fromCharCode(c);
+        } else if (c > 127 && c < 2048) {
+          utftext += String.fromCharCode((c >> 6) | 192);
+          utftext += String.fromCharCode((c & 63) | 128);
+        } else {
+          utftext += String.fromCharCode((c >> 12) | 224);
+          utftext += String.fromCharCode(((c >> 6) & 63) | 128);
+          utftext += String.fromCharCode((c & 63) | 128);
+        }
+      } // Next n
+
+      return utftext;
+    }, // End Function _utf8_encode
+
+    // private method for UTF-8 decoding
+    _utf8_decode: function (utftext) {
+      var string = "";
+      var i = 0;
+      var c, c1, c2, c3;
+      c = c1 = c2 = 0;
+
+      while (i < utftext.length) {
+        c = utftext.charCodeAt(i);
+
+        if (c < 128) {
+          string += String.fromCharCode(c);
+          i++;
+        } else if (c > 191 && c < 224) {
+          c2 = utftext.charCodeAt(i + 1);
+          string += String.fromCharCode(((c & 31) << 6) | (c2 & 63));
+          i += 2;
+        } else {
+          c2 = utftext.charCodeAt(i + 1);
+          c3 = utftext.charCodeAt(i + 2);
+          string += String.fromCharCode(
+            ((c & 15) << 12) | ((c2 & 63) << 6) | (c3 & 63)
+          );
+          i += 3;
+        }
+      } // Whend
+
+      return string;
+    }, // End Function _utf8_decode
+  };
+
   const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
@@ -57,7 +185,10 @@
         switch (options.type) {
           case "intersected":
             await new Promise((resolve, reject) => {
-              const observer = new IntersectionObserver(function (entries, observer) {
+              const observer = new IntersectionObserver(function (
+                entries,
+                observer
+              ) {
                 if (entries[0].isIntersecting) {
                   showRows(options.force).then(resolve);
                   observer.disconnect();
@@ -301,17 +432,25 @@
     $smartTable.on("st.reset.filters", async function (event, withReload) {
       resetFilters(withReload);
     });
-    $smartTable.on("st.get.filters", async function (event, getFiltersFunction) {
-      if (getFiltersFunction == null || typeof getFiltersFunction !== "function") {
-        throw new Error("specify getFiltersFunction");
+    $smartTable.on(
+      "st.get.filters",
+      async function (event, getFiltersFunction) {
+        if (
+          getFiltersFunction == null ||
+          typeof getFiltersFunction !== "function"
+        ) {
+          throw new Error("specify getFiltersFunction");
+        }
+        try {
+          getFiltersFunction(
+            Base64.encode(JSON.stringify({ fieldValuesList, order }))
+          );
+        } catch (error) {
+          console.error(error);
+          throw new Error(`Error on getting filters: ${error}`);
+        }
       }
-      try {
-        getFiltersFunction(btoa(JSON.stringify({fieldValuesList, order})));
-      } catch (error) {
-        console.error(error);
-        throw new Error(`Error on getting filters: ${error}`)
-      }
-    });
+    );
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
@@ -320,8 +459,8 @@
         <div class="form-check form-switch">
           <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}">
           <label class="form-check-label" for="${id}">${$(this)
-          .text()
-          .trim()}</label>
+        .text()
+        .trim()}</label>
         </div>
       `)
         .find(".smart-table__column-toggle-checkbox")
@@ -852,11 +991,15 @@
     }
 
     function showFieldValuesPositions() {
-      $ths.find(".smart-table__menu-toggle-button").html(`<i class="fa-solid fa-caret-down"></i>`);
+      $ths
+        .find(".smart-table__menu-toggle-button")
+        .html(`<i class="fa-solid fa-caret-down"></i>`);
 
       let index = 1;
       for (const fieldValues of fieldValuesList) {
-        $ths.filter(`[data-st-field="${fieldValues.field}"]`).find(".smart-table__menu-toggle-button").html(`
+        $ths
+          .filter(`[data-st-field="${fieldValues.field}"]`)
+          .find(".smart-table__menu-toggle-button").html(`
           <div class="d-flex align-items-center text-danger">
             <i class="fa-solid fa-filter"></i>
             <span class="fw-bold">${index}</span> 
@@ -909,7 +1052,10 @@
     }
     const $rows = $(options.rowsTarget);
     if ($rows.length === 0) {
-      console.error(`Rows element with selector "${options.rowsTarget}" missing, specify a valid selector in options for`, this);
+      console.error(
+        `Rows element with selector "${options.rowsTarget}" missing, specify a valid selector in options for`,
+        this
+      );
       return;
     }
     if (!options.lastRowTarget) {
@@ -918,7 +1064,10 @@
     }
     const $lastRow = $(options.lastRowTarget);
     if ($lastRow.length === 0) {
-      console.error(`Last row element with selector "${options.lastRowTarget}" missing, specify a valid selector in options for`, this);
+      console.error(
+        `Last row element with selector "${options.lastRowTarget}" missing, specify a valid selector in options for`,
+        this
+      );
       return;
     }
 
@@ -1039,11 +1188,11 @@ function smartTableFilterRows(rows, fieldValuesList, field = null) {
         ? value == null
           ? fieldValues.include.includes("")
           : fieldValues.include.some(
-            (item) => smartTableParseValue(item, fieldValues.type) == value
-          )
+              (item) => smartTableParseValue(item, fieldValues.type) == value
+            )
         : value == null
-          ? !fieldValues.exclude.includes("")
-          : !fieldValues.exclude.some(
+        ? !fieldValues.exclude.includes("")
+        : !fieldValues.exclude.some(
             (item) => smartTableParseValue(item, fieldValues.type) == value
           );
     });
