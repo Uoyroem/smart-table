@@ -314,7 +314,7 @@
           throw new Error("specify getFiltersFunction");
         }
         try {
-          getFiltersFunction({ fieldValuesList, order });
+          getFiltersFunction({ fieldValuesList, order, fieldType: getFieldType() });
         } catch (error) {
           console.error(error);
           throw new Error(`Error on getting filters: ${error}`);
