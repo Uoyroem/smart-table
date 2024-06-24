@@ -29,6 +29,9 @@
   $.fn.smartTableGetFilters = function (getFiltersFunction) {
     $(this).trigger("st.get.filters", [getFiltersFunction]);
   };
+  $.fn.smartTableLoadFilters = function (filters) {
+    $(this).trigger("st.load.filters", [filters]);
+  };
 
   $.fn.smartTableResetFilters = function (withReload = false) {
     $(this).trigger("st.reset.filters", [withReload]);
@@ -321,6 +324,11 @@
         }
       }
     );
+    $smartTable.on("st.load.filters", function (event, filters) {
+      fieldValuesList = filters.fieldValuesList;
+      order = filters.order;
+      reload({type: options.firstShowRows, force: true})
+    });
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
