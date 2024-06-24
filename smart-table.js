@@ -36,6 +36,9 @@
   $.fn.smartTableResetFilters = function (withReload = false) {
     $(this).trigger("st.reset.filters", [withReload]);
   };
+  $.fn.smartTableRemoveFilterFromField = function (field, withReload = true) {
+    $(this).trigger("st.remove.filter.from.field", [field, withReload]);
+  };
 
   $.fn.smartTableUpdateFieldValues = function (
     excludeOrInclude,
@@ -317,7 +320,11 @@
           throw new Error("specify getFiltersFunction");
         }
         try {
-          getFiltersFunction({ fieldValuesList, order, fieldType: getFieldType() });
+          getFiltersFunction({
+            fieldValuesList,
+            order,
+            fieldType: getFieldType(),
+          });
         } catch (error) {
           console.error(error);
           throw new Error(`Error on getting filters: ${error}`);
@@ -328,7 +335,7 @@
       fieldValuesList = filters.fieldValuesList;
       order = filters.order;
       if (withReload) {
-        reload({type: options.firstShowRows, force: true});
+        reload({ type: options.firstShowRows, force: true });
       }
     });
     $ths.each(function () {
@@ -912,6 +919,18 @@
           });
         }
         showFieldValuesPositions();
+      }
+    );
+
+    $smartTable.on(
+      "st.remove.filter.from.field",
+      function (event, field, withReload) {
+        fieldValuesList = fieldValuesList.filter(
+          (fieldValues) => fieldValues.field !== field
+        );
+        if (withReload) {
+          reload({ type: options.firstShowRows, force: true });
+        }
       }
     );
 
