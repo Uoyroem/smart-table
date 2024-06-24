@@ -26,6 +26,10 @@
     $(this).trigger("st.reload.rows", [reloadType]);
   };
 
+  $.fn.smartTableGetFilters = function (getFiltersFunction) {
+    $(this).trigger("st.get.filters", [getFiltersFunction]);
+  };
+
   $.fn.smartTableResetFilters = function (withReload = false) {
     $(this).trigger("st.reset.filters", [withReload]);
   };
@@ -297,7 +301,17 @@
     $smartTable.on("st.reset.filters", async function (event, withReload) {
       resetFilters(withReload);
     });
-
+    $smartTable.on("st.get.filters", async function (event, getFiltersFunction) {
+      if (getFiltersFunction == null || typeof getFiltersFunction !== "function") {
+        throw new Error("specify getFiltersFunction");
+      }
+      try {
+        getFiltersFunction(btoa(JSON.stringify({fieldValuesList, order})));
+      } catch (error) {
+        console.error(error);
+        throw new Error(`Error on getting filters: ${error}`)
+      }
+    });
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
