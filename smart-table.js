@@ -160,17 +160,17 @@
     }
     const $settings = $(`
       <div class="dropdown smart-table__settings">
-        <button class="btn btn-sm" title="Настройки таблицы - сброс фильтра, показать/скрыть столбец и т.п." data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <button class="btn btn-sm" title="Настройки таблицы - сброс фильтра, показать/скрыть столбцы и т.п." data-bs-auto-close="outside" type="button" data-bs-toggle="dropdown" aria-expanded="false">
           <i class="fa-solid fa-gears"></i>
         </button>
-        <ul class="dropdown-menu">
+        <ul class="dropdown-menu smart-table__settings-menu">
           <li>
-            <button type="button" class="btn dropdown-item smart-table__reset-button">Сбросить фильтр</button>
+            <button type="button" class="btn dropdown-item smart-table__reset-button"><i class="fa-solid fa-filter-circle-xmark"></i> Сбросить фильтр</button>
           </li>
           <li>
             <div class="btn-group dropend w-100">
               <button type="button" class="btn dropdown-item dropdown-toggle" data-bs-auto-close="outside" data-bs-toggle="dropdown" aria-expanded="false">
-                Показать или скрыть столбцы
+                <i class="fa-solid fa-sliders"></i> Показать или скрыть столбцы
               </button>
               <ul class="dropdown-menu">
                 <div class="smart-table__column-toggle-checkboxes mx-1 px-1"></div>
@@ -180,6 +180,7 @@
         </ul>
       </div>
     `);
+    const $settingsMenu = $settings.find(".smart-table__settings-menu");
     const $reloadButton = $(`
       <button type="button" title="Обновить таблицу" class="btn btn-sm smart-table__reload-button">
         <i class="fa-solid fa-sync"></i>
@@ -287,6 +288,13 @@
     if ("addTools" in options && typeof options.addTools === "function") {
       try {
         options.addTools($toolsContainer);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    if ("addSettingsMenuItems" in options && typeof options.addSettingsMenuItems === "function") {
+      try {
+        options.addSettingsMenuItems($settingsMenu);
       } catch (error) {
         console.error(error);
       }
@@ -810,10 +818,10 @@
       return fieldType;
     }
 
-    async function showRows(forceReload = false) {
+    async function showRows(forceReload = false, signal = null) {
       const fieldType = getFieldType();
       try {
-        await options.showRows(fieldValuesList, fieldType, order, forceReload);
+        await options.showRows(fieldValuesList, fieldType, order, forceReload, signal);
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);

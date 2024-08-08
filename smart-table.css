@@ -31,7 +31,7 @@
 }
 
 .smart-table__column-toggle-checkboxes {
-    max-height: 20em;
+    max-height: 24em;
     overflow-y: scroll;
 }
 
