@@ -410,7 +410,7 @@
     });
     const $menu = $(`
       <ul class="smart-table__menu dropdown-menu">
-        <li class="mb-2">
+        <li>
           <button type="button" class="btn dropdown-item smart-table__menu-sort-button">
             <div class="row">
               <div class="col-1">
@@ -428,15 +428,15 @@
         </li>
         <li>
           <div class="mx-2">
-            <button type="button" class="btn btn-sm btn-link smart-table__menu-value-check-all">
+            <a type="button" class="btn btn-link btn-sm smart-table__menu-value-check-all">
               Выделить все
-            </button>
-            <button type="button" class="btn btn-sm btn-link smart-table__menu-value-uncheck-all">
+            </a>
+            <a type="button" class="btn btn-link btn-sm smart-table__menu-value-uncheck-all">
               Сбросить
-            </button>
+            </a>
             <div class="position-relative mb-2">
               <form class="smart-table__menu-value-search-form">
-                <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
+                <input type="search" placeholder="Поиск..." class="form-control smart-table__menu-value-search-input pe-5"/>
               </form>
               
                 
@@ -452,10 +452,10 @@
         <li><hr class="dropdown-divider"></li>
         <li>
           <div class="text-end mx-2">
-            <button type="button" class="btn btn-sm btn-outline-primary cancel-button">
+            <button type="button" class="btn btn-sm btn-link cancel-button">
               Отмена
             </button>
-            <button type="button" class="btn btn-sm btn-primary submit-button">
+            <button type="button" class="btn btn-sm btn-success submit-button">
               Принять
             </button>
           </div>
@@ -688,7 +688,7 @@
       }
     }
 
-    async function updateSubtotals(fields = null, signal = null) {
+    async function updateSubtotals(fields = null) {
       if (options.getSubtotals) {
         const fieldSubtotal = getFieldSubtotal(fields);
         const fieldType = getFieldType(fields);
@@ -697,8 +697,7 @@
           const fieldResult = await options.getSubtotals(
             fieldValuesList,
             fieldType,
-            fieldSubtotal,
-            signal
+            fieldSubtotal
           );
           $ths.each(function () {
             const field = $(this).data("stField");
@@ -831,13 +830,13 @@
       return fieldType;
     }
 
-    async function showRows(forceReload = false, signal = null) {
+    async function showRows(forceReload = false) {
       const fieldType = getFieldType();
       try {
         abortShowRows();
         await Promise.all([
-          options.showRows(fieldValuesList, fieldType, order, forceReload, signal),
-          updateSubtotals(null, signal)
+          options.showRows(fieldValuesList, fieldType, order, forceReload),
+          updateSubtotals()
         ]);
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
@@ -897,8 +896,8 @@
         }
       }
       showFieldValuesPositions();
-      await reload();
       hideMenu();
+      await reload();
     }
 
     function showFieldValuesPositions() {
