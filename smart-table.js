@@ -51,11 +51,23 @@
   $.fn.smartTable = function (options) {
     const $smartTable = this;
     let reloading = false;
-    async function reload(options = { type: null, force: false }) {
-      if (reloading) {
-        return;
+    function abortShowRows() {
+      if ("abortShowRows" in options && typeof options.abortShowRows === "function") {
+        options.abortShowRows();
       }
+    }
+    function abortGetValues() {
+      if ("abortGetValues" in options && typeof options.abortGetValues === "function") {
+        options.abortGetValues();
+      }
+    }
+    function abortGetSubtotals() {
+      if ("abortGetSubtotals" in options && typeof options.abortGetSubtotals === "function") {
+        options.abortGetSubtotals();
 
+      }
+    }
+    async function reload(options = { type: null, force: false }) {
       reloading = true;
       $reloadButton.prop("disabled", true);
       $reloadButton.find(".fa-solid").addClass("fa-spin");
@@ -240,7 +252,6 @@
             },
             signal: unloadAbortController.signal,
           });
-          console.log(response);
           if (response.ok) {
             const blob = await response.blob();
             const objectUrl = URL.createObjectURL(blob);
@@ -269,7 +280,7 @@
         try {
           unloadAbortController.abort();
         } catch (error) {
-          console.log(error);
+          console.error(error);
         }
       });
       $unloadTypes.on("click", ".smart-table__unload-type", function () {
@@ -399,7 +410,7 @@
     });
     const $menu = $(`
       <ul class="smart-table__menu dropdown-menu">
-        <li class="mb-2">
+        <li>
           <button type="button" class="btn dropdown-item smart-table__menu-sort-button">
             <div class="row">
               <div class="col-1">
@@ -417,15 +428,15 @@
         </li>
         <li>
           <div class="mx-2">
-            <button type="button" class="btn btn-sm btn-link smart-table__menu-value-check-all">
+            <a type="button" class="btn btn-link btn-sm smart-table__menu-value-check-all">
               Выделить все
-            </button>
-            <button type="button" class="btn btn-sm btn-link smart-table__menu-value-uncheck-all">
+            </a>
+            <a type="button" class="btn btn-link btn-sm smart-table__menu-value-uncheck-all">
               Сбросить
-            </button>
+            </a>
             <div class="position-relative mb-2">
               <form class="smart-table__menu-value-search-form">
-                <input type="search" class="form-control smart-table__menu-value-search-input pe-5"/>
+                <input type="search" placeholder="Поиск..." class="form-control smart-table__menu-value-search-input pe-5"/>
               </form>
               
                 
@@ -441,10 +452,10 @@
         <li><hr class="dropdown-divider"></li>
         <li>
           <div class="text-end mx-2">
-            <button type="button" class="btn btn-sm btn-outline-primary cancel-button">
+            <button type="button" class="btn btn-sm btn-link cancel-button">
               Отмена
             </button>
-            <button type="button" class="btn btn-sm btn-primary submit-button">
+            <button type="button" class="btn btn-sm btn-success submit-button">
               Принять
             </button>
           </div>
@@ -475,7 +486,6 @@
       activeMenuToggleButton = this;
       const offset = $(this).offset();
       offset.top += $(this).outerHeight() + 2;
-      console.log(window.innerWidth, offset.left + $menu.outerWidth());
       if (offset.left + $menu.outerWidth() > window.innerWidth) {
         offset.left -= $menu.outerWidth() - $(this).outerWidth();
       }
@@ -540,6 +550,7 @@
     let fieldValuesList = [];
     let indexValue = {};
     function onMenuHidden() {
+      abortGetValues();
       const $menuValueCheckboxes = $(
         ".smart-table__menu-value-checkboxes",
         $menu
@@ -554,7 +565,6 @@
     async function onMenuShown() {
       menuActive = true;
       $activeTh = $(this).closest("th");
-      console.log($activeTh);
       newOrder = JSON.parse(JSON.stringify(order));
       const $menuSearchInput = $(
         ".smart-table__menu-value-search-input",
@@ -578,6 +588,7 @@
       const field = $activeTh.data("stField");
       const type = getTypeFromTh($activeTh);
       const fieldType = getFieldType();
+      abortGetValues();
       let values = await options.getValues(field, fieldType, fieldValuesList);
       values = Array.from(
         new Set(
@@ -685,6 +696,7 @@
         const fieldSubtotal = getFieldSubtotal(fields);
         const fieldType = getFieldType(fields);
         try {
+          abortGetSubtotals();
           const fieldResult = await options.getSubtotals(
             fieldValuesList,
             fieldType,
@@ -821,15 +833,18 @@
       return fieldType;
     }
 
-    async function showRows(forceReload = false, signal = null) {
+    async function showRows(forceReload = false) {
       const fieldType = getFieldType();
       try {
-        await options.showRows(fieldValuesList, fieldType, order, forceReload, signal);
+        abortShowRows();
+        await Promise.all([
+          options.showRows(fieldValuesList, fieldType, order, forceReload),
+          updateSubtotals()
+        ]);
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);
       }
-      updateSubtotals();
     }
 
     async function submit() {
@@ -884,8 +899,8 @@
         }
       }
       showFieldValuesPositions();
-      await reload();
       hideMenu();
+      await reload();
     }
 
     function showFieldValuesPositions() {
@@ -982,7 +997,29 @@
     }
 
     this.smartTable({
+      getSubtotalsAbortController: null,
+      abortGetSubtotals() {
+        if (this.getSubtotalsAbortController == null) {
+          return;
+        }
+        this.getSubtotalsAbortController.abort(); 
+      },
+      getValuesAbortController: null,
+      abortGetValues() {
+        if (this.getValuesAbortController == null) {
+          return;
+        }
+        this.getValuesAbortController.abort(); 
+      },
+      showRowsAbortController: null,
+      abortShowRows() {
+        if (this.showRowsAbortController == null) {
+          return;
+        }
+        this.showRowsAbortController.abort();
+      },  
       async getValues(field, fieldType, fieldValuesList) {
+        this.getValuesAbortController = new AbortController();
         const response = await fetch(options.getValuesUrl, {
           method: "POST",
           body: JSON.stringify({
@@ -993,6 +1030,7 @@
           headers: {
             "X-CSRFToken": options.csrfToken,
           },
+          signal: this.getValuesAbortController.signal
         });
         const data = await response.json();
         return data.values;
@@ -1002,6 +1040,7 @@
       },
       async getRows(fieldValuesList, fieldType, order) {
         if (this.next) {
+          this.showRowsAbortController = new AbortController();
           const response = await fetch(this.next, {
             method: "POST",
             body: JSON.stringify({
@@ -1012,6 +1051,7 @@
             headers: {
               "X-CSRFToken": options.csrfToken,
             },
+            signal: this.showRowsAbortController.signal
           });
           const data = await response.json();
           this.next = data.next;
@@ -1047,6 +1087,7 @@
         observer.observe($(options.lastRowTarget)[0]);
       },
       async getSubtotals(fieldValuesList, fieldType, fieldSubtotal) {
+        this.getSubtotalsAbortController = new AbortController();
         const response = await fetch(this.getSubtotalsUrl, {
           method: "POST",
           body: JSON.stringify({
@@ -1057,6 +1098,7 @@
           headers: {
             "X-CSRFToken": options.csrfToken,
           },
+          signal: this.getSubtotalsAbortController.signal
         });
         const json = await response.json();
         return json.fieldResult;
