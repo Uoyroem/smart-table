@@ -582,6 +582,9 @@
       values = Array.from(
         new Set(
           Array.from(values).map(function (value) {
+            if (value == null) {
+              return null;
+            }
             switch (type) {
               case "number":
                 return parseFloat(value);
