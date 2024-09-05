@@ -614,13 +614,13 @@
         }
         switch (type) {
           case "number":
-            return b - a;
+            return a - b;
           case "date":
             return new Date(b) - new Date(a);
           default:
             return options.collator
-              ? options.collator.compare(b, a)
-              : b.toString().localeCompare(a.toString());
+              ? options.collator.compare(a, b)
+              : a.toString().localeCompare(b.toString());
         }
       });
       $menuValueCheckboxes.empty();
