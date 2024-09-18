@@ -837,10 +837,8 @@
       const fieldType = getFieldType();
       try {
         abortShowRows();
-        await Promise.all([
-          options.showRows(fieldValuesList, fieldType, order, forceReload),
-          updateSubtotals()
-        ]);
+        await options.showRows(fieldValuesList, fieldType, order, forceReload);
+        await updateSubtotals();
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);
