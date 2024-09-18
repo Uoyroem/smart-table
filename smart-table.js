@@ -1180,7 +1180,7 @@ function smartTableGetSubtotals(
   fieldSubtotal
 ) {
   if (!rows || rows.length === 0) {
-    return 0;
+    return {};
   }
   rows = smartTableFilterRows(
     smartTableConvert(rows, fieldType),
