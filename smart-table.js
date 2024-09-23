@@ -243,6 +243,7 @@
             method: "POST",
             body: JSON.stringify({
               order,
+              filters: getFilters(),
               fieldValuesList,
               fieldType,
               type,
@@ -329,6 +330,13 @@
     $smartTable.on("st.reset.filters", async function (event, withReload) {
       resetFilters(withReload);
     });
+    function getFilters() {
+      return {
+        fieldValuesList,
+        order,
+        fieldType: getFieldType(),
+      };
+    }
     $smartTable.on(
       "st.get.filters",
       async function (event, getFiltersFunction) {
@@ -339,11 +347,7 @@
           throw new Error("specify getFiltersFunction");
         }
         try {
-          getFiltersFunction({
-            fieldValuesList,
-            order,
-            fieldType: getFieldType(),
-          });
+          getFiltersFunction(getFilters());
         } catch (error) {
           console.error(error);
           throw new Error(`Error on getting filters: ${error}`);
@@ -614,13 +618,13 @@
         }
         switch (type) {
           case "number":
-            return a - b;
+            return b - a;
           case "date":
             return new Date(b) - new Date(a);
           default:
             return options.collator
-              ? options.collator.compare(a, b)
-              : a.toString().localeCompare(b.toString());
+              ? options.collator.compare(b, a)
+              : b.toString().localeCompare(a.toString());
         }
       });
       $menuValueCheckboxes.empty();
@@ -837,19 +841,10 @@
       const fieldType = getFieldType();
       try {
         abortShowRows();
-        const showRowsCallOrder = options.showRowsCallOrder ?? "both";
-        if (showRowsCallOrder === "showRowsAndUpdateSubtotals") {
-          await options.showRows(fieldValuesList, fieldType, order, forceReload);
-          await updateSubtotals();
-        } else if (showRowsCallOrder === "updateSubtotalsAndShowRows") {
-          await updateSubtotals();
-          await options.showRows(fieldValuesList, fieldType, order, forceReload);
-        } else {
-          await Promise.all([
-            updateSubtotals(),
-            options.showRows(fieldValuesList, fieldType, order, forceReload),
-          ]);
-        }
+        await Promise.all([
+          options.showRows(fieldValuesList, fieldType, order, forceReload),
+          updateSubtotals()
+        ]);
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);
@@ -1189,7 +1184,7 @@ function smartTableGetSubtotals(
   fieldSubtotal
 ) {
   if (!rows || rows.length === 0) {
-    return {};
+    return 0;
   }
   rows = smartTableFilterRows(
     smartTableConvert(rows, fieldType),
