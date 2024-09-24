@@ -243,7 +243,7 @@
             method: "POST",
             body: JSON.stringify({
               order,
-              filters: getFilters(),
+              filters: getFilters(), //added filter
               fieldValuesList,
               fieldType,
               type,
