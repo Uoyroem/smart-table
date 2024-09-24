@@ -624,7 +624,7 @@
           default:
             return options.collator
               ? options.collator.compare(a, b)
-              : b.toString().localeCompare(a.toString());
+              : a.toString().localeCompare(b.toString());
         }
       });
       $menuValueCheckboxes.empty();
