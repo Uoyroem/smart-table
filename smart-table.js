@@ -618,12 +618,12 @@
         }
         switch (type) {
           case "number":
-            return b - a;
+            return a - b;
           case "date":
             return new Date(b) - new Date(a);
           default:
             return options.collator
-              ? options.collator.compare(b, a)
+              ? options.collator.compare(a, b)
               : b.toString().localeCompare(a.toString());
         }
       });
