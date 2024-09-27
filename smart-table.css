@@ -52,3 +52,7 @@
 .smart-table {}
 
 .button {}
+
+.smart-table__tools-container{
+    z-index: 666;
+  }
