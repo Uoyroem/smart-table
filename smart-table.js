@@ -218,7 +218,7 @@
     );
 
     const $toolsContainer = $(`
-      <div class="d-flex align-items-center mb-1 gap-2">
+      <div class="smart-table__tools-container d-flex align-items-center mb-1 gap-2">
       </div>
     `);
     $toolsContainer.append($settings);
