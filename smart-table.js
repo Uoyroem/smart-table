@@ -841,10 +841,19 @@
       const fieldType = getFieldType();
       try {
         abortShowRows();
-        await Promise.all([
-          options.showRows(fieldValuesList, fieldType, order, forceReload),
-          updateSubtotals()
-        ]);
+        const showRowsCallOrder = options.showRowsCallOrder ?? "both";
+        if (showRowsCallOrder === "showRowsAndUpdateSubtotals") {
+          await options.showRows(fieldValuesList, fieldType, order, forceReload);
+          await updateSubtotals();
+        } else if (showRowsCallOrder === "updateSubtotalsAndShowRows") {
+          await updateSubtotals();
+          await options.showRows(fieldValuesList, fieldType, order, forceReload);
+        } else {
+          await Promise.all([
+            updateSubtotals(),
+            options.showRows(fieldValuesList, fieldType, order, forceReload),
+          ]);
+        }
         $smartTable.trigger("st.rows.displayed");
       } catch (error) {
         console.error(error);
