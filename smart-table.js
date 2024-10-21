@@ -1031,9 +1031,21 @@
         }
         this.showRowsAbortController.abort();
       },  
+      _getUrl(url, type) {
+        url = new URL(url, location.origin);
+        if ("setUrlSearchParams" in options && typeof options["setUrlSearchParams"] === "function") {
+          options.setUrlSearchParams(url.searchParams);
+        }
+        const setTypeUrlSearchParams = $`set${type}UrlSearchParams`;
+        if (setTypeUrlSearchParams in options && typeof options[setTypeUrlSearchParams] === "function")  {
+          options[setTypeUrlSearchParams](url.searchParams);
+        }
+        return url;
+      },
       async getValues(field, fieldType, fieldValuesList) {
+        const url = this._getUrl(options.getValuesUrl, "GetValues");
         this.getValuesAbortController = new AbortController();
-        const response = await fetch(options.getValuesUrl, {
+        const response = await fetch(url, {
           method: "POST",
           body: JSON.stringify({
             field,
@@ -1049,28 +1061,30 @@
         return data.values;
       },
       reset() {
-        this.next = options.getRowsUrl;
+        this.nextPage = 0;
       },
       async getRows(fieldValuesList, fieldType, order) {
-        if (this.next) {
-          this.showRowsAbortController = new AbortController();
-          const response = await fetch(this.next, {
-            method: "POST",
-            body: JSON.stringify({
-              fieldValuesList,
-              fieldType,
-              order,
-            }),
-            headers: {
-              "X-CSRFToken": options.csrfToken,
-            },
-            signal: this.showRowsAbortController.signal
-          });
-          const data = await response.json();
-          this.next = data.next;
-          return data.rows;
+        if (this.nextPage == null) {
+          return null;
         }
-        return null;
+        const url = this._getUrl(this.getRowsUrl, "GetRows");
+        url.searchParams.set("page", this.nextPage);
+        this.showRowsAbortController = new AbortController();
+        const response = await fetch(url, {
+          method: "POST",
+          body: JSON.stringify({
+            fieldValuesList,
+            fieldType,
+            order,
+          }),
+          headers: {
+            "X-CSRFToken": options.csrfToken,
+          },
+          signal: this.showRowsAbortController.signal
+        });
+        const data = await response.json();
+        this.nextPage = data.nextPage;
+        return data.rows;
       },
       async insertRows(fieldValuesList, fieldType, order) {
         const $loadingTr = $lastRow.before(options.loadingHtml).prev();
@@ -1100,8 +1114,9 @@
         observer.observe($(options.lastRowTarget)[0]);
       },
       async getSubtotals(fieldValuesList, fieldType, fieldSubtotal) {
+        const url = this._getUrl(options.getValuesUrl, "GetSubtotals");
         this.getSubtotalsAbortController = new AbortController();
-        const response = await fetch(this.getSubtotalsUrl, {
+        const response = await fetch(url, {
           method: "POST",
           body: JSON.stringify({
             fieldValuesList,
@@ -1116,7 +1131,7 @@
         const json = await response.json();
         return json.fieldResult;
       },
-      ...options,
+      __proto__: options,
     });
   };
 })();
