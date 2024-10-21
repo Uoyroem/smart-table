@@ -1114,7 +1114,7 @@
         observer.observe($(options.lastRowTarget)[0]);
       },
       async getSubtotals(fieldValuesList, fieldType, fieldSubtotal) {
-        const url = this._getUrl(options.getValuesUrl, "GetSubtotals");
+        const url = this._getUrl(options.getSubtotalsUrl, "GetSubtotals");
         this.getSubtotalsAbortController = new AbortController();
         const response = await fetch(url, {
           method: "POST",
