@@ -759,7 +759,7 @@
     }
     let order = filtersData?.order;
     function resetOrder(hard = true) {
-      if (hard) {
+      if (hard || order == null) {
         order = JSON.parse(JSON.stringify(options.defaultOrder || []));
       }
       $("thead th", $smartTable).data("sort", null);
