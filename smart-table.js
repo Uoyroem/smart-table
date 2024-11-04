@@ -52,19 +52,27 @@
     const $smartTable = this;
     let reloading = false;
     function abortShowRows() {
-      if ("abortShowRows" in options && typeof options.abortShowRows === "function") {
+      if (
+        "abortShowRows" in options &&
+        typeof options.abortShowRows === "function"
+      ) {
         options.abortShowRows();
       }
     }
     function abortGetValues() {
-      if ("abortGetValues" in options && typeof options.abortGetValues === "function") {
+      if (
+        "abortGetValues" in options &&
+        typeof options.abortGetValues === "function"
+      ) {
         options.abortGetValues();
       }
     }
     function abortGetSubtotals() {
-      if ("abortGetSubtotals" in options && typeof options.abortGetSubtotals === "function") {
+      if (
+        "abortGetSubtotals" in options &&
+        typeof options.abortGetSubtotals === "function"
+      ) {
         options.abortGetSubtotals();
-
       }
     }
     async function reload(options = { type: null, force: false }) {
@@ -304,7 +312,10 @@
         console.error(error);
       }
     }
-    if ("addSettingsMenuItems" in options && typeof options.addSettingsMenuItems === "function") {
+    if (
+      "addSettingsMenuItems" in options &&
+      typeof options.addSettingsMenuItems === "function"
+    ) {
       try {
         options.addSettingsMenuItems($settingsMenu);
       } catch (error) {
@@ -323,6 +334,7 @@
       if (withReload) {
         await reload({ force: true });
       }
+      setValue(filtersDataKey, { fieldValuesList, order });
       $settings.dropdown("hide");
     }
     $(".smart-table__reset-button", $settings).on("click", resetFilters);
@@ -330,6 +342,7 @@
     $smartTable.on("st.reset.filters", async function (event, withReload) {
       resetFilters(withReload);
     });
+    const filtersDataKey = `${smartTableId}-filtersData`;
     function getFilters() {
       return {
         fieldValuesList,
@@ -550,8 +563,8 @@
         submit();
       }
     );
-
-    let fieldValuesList = [];
+    const filtersData = getValue(filtersDataKey);
+    let fieldValuesList = filtersData?.fieldValuesList ?? [];
     let indexValue = {};
     function onMenuHidden() {
       abortGetValues();
@@ -753,7 +766,12 @@
         th.data("sort", fieldSort.sort);
       }
     }
-    resetOrder();
+    let filtersDataOrder = filtersData?.order;
+    if ((filtersDataOrder?.length ?? 0) == 0) {
+      resetOrder();
+    } else {
+      order = filtersDataOrder;
+    }
     let newOrder = null;
     function changeOrder() {
       const field = $activeTh.data("stField");
@@ -843,11 +861,21 @@
         abortShowRows();
         const showRowsCallOrder = options.showRowsCallOrder ?? "both";
         if (showRowsCallOrder === "showRowsAndUpdateSubtotals") {
-          await options.showRows(fieldValuesList, fieldType, order, forceReload);
+          await options.showRows(
+            fieldValuesList,
+            fieldType,
+            order,
+            forceReload
+          );
           await updateSubtotals();
         } else if (showRowsCallOrder === "updateSubtotalsAndShowRows") {
           await updateSubtotals();
-          await options.showRows(fieldValuesList, fieldType, order, forceReload);
+          await options.showRows(
+            fieldValuesList,
+            fieldType,
+            order,
+            forceReload
+          );
         } else {
           await Promise.all([
             updateSubtotals(),
@@ -913,6 +941,7 @@
       }
       showFieldValuesPositions();
       hideMenu();
+      setValue(filtersDataKey, { fieldValuesList, order });
       await reload();
     }
 
@@ -1015,14 +1044,14 @@
         if (this.getSubtotalsAbortController == null) {
           return;
         }
-        this.getSubtotalsAbortController.abort(); 
+        this.getSubtotalsAbortController.abort();
       },
       getValuesAbortController: null,
       abortGetValues() {
         if (this.getValuesAbortController == null) {
           return;
         }
-        this.getValuesAbortController.abort(); 
+        this.getValuesAbortController.abort();
       },
       showRowsAbortController: null,
       abortShowRows() {
@@ -1030,14 +1059,20 @@
           return;
         }
         this.showRowsAbortController.abort();
-      },  
+      },
       _getUrl(url, type) {
         url = new URL(url, location.origin);
-        if ("setUrlSearchParams" in options && typeof options["setUrlSearchParams"] === "function") {
+        if (
+          "setUrlSearchParams" in options &&
+          typeof options["setUrlSearchParams"] === "function"
+        ) {
           options.setUrlSearchParams(url.searchParams);
         }
         const setTypeUrlSearchParams = $`set${type}UrlSearchParams`;
-        if (setTypeUrlSearchParams in options && typeof options[setTypeUrlSearchParams] === "function")  {
+        if (
+          setTypeUrlSearchParams in options &&
+          typeof options[setTypeUrlSearchParams] === "function"
+        ) {
           options[setTypeUrlSearchParams](url.searchParams);
         }
         return url;
@@ -1055,7 +1090,7 @@
           headers: {
             "X-CSRFToken": options.csrfToken,
           },
-          signal: this.getValuesAbortController.signal
+          signal: this.getValuesAbortController.signal,
         });
         const data = await response.json();
         return data.values;
@@ -1080,7 +1115,7 @@
           headers: {
             "X-CSRFToken": options.csrfToken,
           },
-          signal: this.showRowsAbortController.signal
+          signal: this.showRowsAbortController.signal,
         });
         const data = await response.json();
         this.nextPage = data.nextPage;
@@ -1126,7 +1161,7 @@
           headers: {
             "X-CSRFToken": options.csrfToken,
           },
-          signal: this.getSubtotalsAbortController.signal
+          signal: this.getSubtotalsAbortController.signal,
         });
         const json = await response.json();
         return json.fieldResult;
