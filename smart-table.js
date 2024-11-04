@@ -757,9 +757,11 @@
         $menuButtonSortIcon.html(`<i class="fa-solid fa-sort-down"></i>`);
       }
     }
-    let order;
-    function resetOrder() {
-      order = JSON.parse(JSON.stringify(options.defaultOrder || []));
+    let order = filtersData?.order;
+    function resetOrder(hard = true) {
+      if (hard) {
+        order = JSON.parse(JSON.stringify(options.defaultOrder || []));
+      }
       $("thead th", $smartTable).data("sort", null);
       for (const fieldSort of order) {
         const th = $(`thead th[data-st-field="${fieldSort.field}"]`);
@@ -767,12 +769,7 @@
         th.data("sort", fieldSort.sort);
       }
     }
-    let filtersDataOrder = filtersData?.order;
-    if ((filtersDataOrder?.length ?? 0) == 0) {
-      resetOrder();
-    } else {
-      order = filtersDataOrder;
-    }
+    resetOrder(false);
     let newOrder = null;
     function changeOrder() {
       const field = $activeTh.data("stField");
