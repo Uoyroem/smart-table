@@ -565,6 +565,7 @@
     );
     const filtersData = getValue(filtersDataKey);
     let fieldValuesList = filtersData?.fieldValuesList ?? [];
+    
     let indexValue = {};
     function onMenuHidden() {
       abortGetValues();
@@ -963,6 +964,7 @@
         index++;
       }
     }
+    showFieldValuesPositions();
 
     $menu.on("click", ".submit-button", submit);
     $smartTable.on(
