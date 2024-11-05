@@ -334,7 +334,7 @@
       if (withReload) {
         await reload({ force: true });
       }
-      setValue(filtersDataKey, { fieldValuesList, order });
+      saveFiltersData();
       $settings.dropdown("hide");
     }
     $(".smart-table__reset-button", $settings).on("click", resetFilters);
@@ -373,6 +373,7 @@
       if (withReload) {
         reload({ type: options.firstShowRows, force: true });
       }
+      saveFiltersData();
     });
     $ths.each(function () {
       const field = $(this).data("stField");
@@ -939,8 +940,11 @@
       }
       showFieldValuesPositions();
       hideMenu();
-      setValue(filtersDataKey, { fieldValuesList, order });
+      saveFiltersData();
       await reload();
+    }
+    function saveFiltersData() {
+      setValue(filtersDataKey, { fieldValuesList, order });
     }
 
     function showFieldValuesPositions() {
@@ -986,6 +990,7 @@
           });
         }
         showFieldValuesPositions();
+        saveFiltersData();
       }
     );
 
@@ -998,6 +1003,8 @@
         if (withReload) {
           reload({ type: options.firstShowRows, force: true });
         }
+        showFieldValuesPositions();
+        saveFiltersData();
       }
     );
 
