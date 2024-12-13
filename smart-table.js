@@ -459,10 +459,11 @@
             </form>
             <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
           </div>
-          
-          <ul class="list-group list-group-flush flex-fill smart-table__menu-value-checkboxes border rounded">
-            
-          </ul>
+          <div class="position-relative flex-fill">
+            <ul class="position-absolute top-0 bottom-0 start-0 end-0 list-group list-group-flush flex-fill smart-table__menu-value-checkboxes border rounded">
+              
+            </ul>
+          </div>
         </li>
         <li><hr class="dropdown-divider"></li>
         <li>
