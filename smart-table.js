@@ -623,11 +623,6 @@
               return null;
             }
             switch (type) {
-              case "number":
-                return parseFloat(value);
-              case "date":
-                const date = new Date(value);
-                return date.toISOString().slice(0, 10);
               default:
                 return value;
             }
@@ -640,7 +635,7 @@
         }
         switch (type) {
           case "number":
-            return a - b;
+            return parseFloat(a) - parseFloat(b);
           case "date":
             return new Date(b) - new Date(a);
           default:
