@@ -1,7 +1,7 @@
 (function () {
   let _NonconflictingId = 1;
   function getNonconflictingId(id) {
-    return $`${id}-${_NonconflictingId++}`
+    return `${id}-${_NonconflictingId++}`;
   }
 
   const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
