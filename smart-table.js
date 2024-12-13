@@ -1,4 +1,9 @@
 (function () {
+  let _NonconflictingId = 1;
+  function getNonconflictingId(id) {
+    return $`${id}-${_NonconflictingId++}`
+  }
+
   const defaultNumberFormat = new Intl.NumberFormat("ru-RU", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 2,
@@ -378,13 +383,11 @@
     $ths.each(function () {
       const field = $(this).data("stField");
       const $th = $(this);
-      const id = `${field}-toggle-checkbox`;
+      const id = getNonconflictingId(`${field}-toggle-checkbox`);
       const checkbox = $(`
         <div class="form-check form-switch">
           <input class="form-check-input smart-table__column-toggle-checkbox" type="checkbox" role="switch" id="${id}">
-          <label class="form-check-label" for="${id}">${$(this)
-        .text()
-        .trim()}</label>
+          <label class="form-check-label" for="${id}">${$(this).text().trim()}</label>
         </div>
       `)
         .find(".smart-table__column-toggle-checkbox")
@@ -567,10 +570,7 @@
     let indexValue = {};
     function onMenuHidden() {
       abortGetValues();
-      localStorage.setItem("smart-table-menu-size", JSON.stringify({
-        outerWidth: $menu.outerWidth(),
-        outerHeight: $menu.outerHeight()
-      }));
+      
       const $menuValueCheckboxes = $(
         ".smart-table__menu-value-checkboxes",
         $menu
@@ -578,6 +578,10 @@
       $menuValueCheckboxes.empty();
       newOrder = null;
       if ($activeTh) {
+        localStorage.setItem("smart-table-menu-size", JSON.stringify({
+          outerWidth: $menu.outerWidth(),
+          outerHeight: $menu.outerHeight()
+        }));
         $activeTh.data("newSort", null);
         $activeTh = null;
       }
@@ -640,11 +644,12 @@
             continue;
           }
           indexValue[""] = "";
+          const id = getNonconflictingId("empty-checkbox");
           $menuValueCheckboxes.prepend(`
             <li class="list-group-item">
               <div class="form-check">
-                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="" id="empty-checkbox" checked>
-                <label class="form-check-label" for="empty-checkbox">
+                <input class="form-check-input smart-table__menu-value-checkbox" type="checkbox" value="" id="${id}" checked>
+                <label class="form-check-label" for="${id}">
                   (Пустые)
                 </label>
               </div>
@@ -653,7 +658,7 @@
           hasEmptyCheckbox = true;
         } else {
           indexValue[index] = value;
-          const id = `checkbox-${index}`;
+          const id = getNonconflictingId(`checkbox-${index}`);
           $menuValueCheckboxes.append(`
             <li class="list-group-item">
               <div class="form-check">
