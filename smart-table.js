@@ -616,19 +616,6 @@
       const fieldType = getFieldType();
       abortGetValues();
       let values = await options.getValues(field, fieldType, fieldValuesList);
-      values = Array.from(
-        new Set(
-          Array.from(values).map(function (value) {
-            if (value == null) {
-              return null;
-            }
-            switch (type) {
-              default:
-                return value;
-            }
-          })
-        )
-      );
       values.sort(function (a, b) {
         if (a == null || b == null) {
           return 0;
@@ -705,7 +692,7 @@
       switch (type) {
         case "number":
           return (options.numberFormat || defaultNumberFormat).format(
-            parseFloat(value) || 0
+            parseFloat(value)
           );
         default:
           return value;
