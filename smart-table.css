@@ -19,11 +19,21 @@
 
 .smart-table__menu {
     width: 20em;
+    resize: both;
+    overflow: auto;
+    min-width: 300px;
+    min-height: 330px;
+    max-width: 675px;
+    max-height: 900px;
+}
+
+.smart-table__menu.show {
+    display: flex;
+    flex-direction: column;
 }
 
 .smart-table__menu-value-checkboxes {
-    max-height: 10em;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 
 .smart-table__menu-value-checkboxes:last-child {
@@ -55,4 +65,4 @@
 
 .smart-table__tools-container{
     z-index: 666;
-  }
+}

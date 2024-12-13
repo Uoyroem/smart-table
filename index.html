@@ -15,8 +15,6 @@
 
 <body>
     <div class="container">
-        <div class="div" style="height: 150vh;"></div>
-
         <table id="some-table" class="table table-bordered">
             <thead>
                 <tr>
@@ -67,9 +65,9 @@
             unloadUrl: "http://127.0.0.1:8000/p1/finance-module/unload",
             lastRowTarget: "#last-row",
             rowsTarget: "#rows",
-            getValuesUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-values",
-            getRowsUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-rows",
-            getSubtotalsUrl: "http://127.0.0.1:8000/p1/finance-module/mandatory-payment-seizure-get-subtotals",
+            getValuesUrl: "http://127.0.0.1:8000/mandatory-payment-seizure-get-values",
+            getRowsUrl: "http://127.0.0.1:8000/mandatory-payment-seizure-get-rows",
+            getSubtotalsUrl: "http://127.0.0.1:8000/mandatory-payment-seizure-get-subtotals",
             loadingHtml: `
                 <tr>
                     <td class="text-center" colspan="5">

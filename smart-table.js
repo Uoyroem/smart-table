@@ -443,28 +443,25 @@
             </div>
           </button>
         </li>
-        <li>
-          <div class="mx-2">
+        <li class="flex-fill d-flex flex-column px-2">
+          <div>
             <a type="button" class="btn btn-link btn-sm smart-table__menu-value-check-all">
               Выделить все
             </a>
             <a type="button" class="btn btn-link btn-sm smart-table__menu-value-uncheck-all">
               Сбросить
             </a>
-            <div class="position-relative mb-2">
-              <form class="smart-table__menu-value-search-form">
-                <input type="search" placeholder="Поиск..." class="form-control smart-table__menu-value-search-input pe-5"/>
-              </form>
-              
-                
-              <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
-            
-            </div>
-            
-            <ul class="list-group list-group-flush smart-table__menu-value-checkboxes border rounded">
-              
-            </ul>
           </div>
+          <div class="position-relative mb-2">
+            <form class="smart-table__menu-value-search-form">
+              <input type="search" placeholder="Поиск..." class="form-control smart-table__menu-value-search-input pe-5"/>
+            </form>
+            <i class="position-absolute fa-solid fa-magnifying-glass" style="top: 30%; right: 5%"></i>
+          </div>
+          
+          <ul class="list-group list-group-flush flex-fill smart-table__menu-value-checkboxes border rounded">
+            
+          </ul>
         </li>
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -552,7 +549,6 @@
     $menu.on("input", ".smart-table__menu-value-search-input", function () {
       showSearchQueryResults();
     });
-
     $menu.on(
       "submit",
       ".smart-table__menu-value-search-form",
@@ -569,6 +565,10 @@
     let indexValue = {};
     function onMenuHidden() {
       abortGetValues();
+      localStorage.setItem("smart-table-menu-size", JSON.stringify({
+        outerWidth: $menu.outerWidth(),
+        outerHeight: $menu.outerHeight()
+      }));
       const $menuValueCheckboxes = $(
         ".smart-table__menu-value-checkboxes",
         $menu
@@ -581,6 +581,12 @@
       }
     }
     async function onMenuShown() {
+      let menuSize = localStorage.getItem("smart-table-menu-size");
+      if (menuSize != null) {
+        menuSize = JSON.parse(menuSize);
+        $menu.outerWidth(menuSize.outerWidth);
+        $menu.outerHeight(menuSize.outerHeight);
+      }
       menuActive = true;
       $activeTh = $(this).closest("th");
       newOrder = JSON.parse(JSON.stringify(order));
@@ -597,7 +603,7 @@
         $menu
       );
       $menuValueCheckboxes.html(`
-        <li class="list-group-item text-center">
+        <li class="list-group-item m-auto text-center">
           <div class="spinner-border spinner-border-sm text-primary" role="status">
             <span class="visually-hidden">Loading...</span>
           </div>
