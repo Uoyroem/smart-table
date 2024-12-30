@@ -851,6 +851,9 @@
     async function showRows(forceReload = false) {
       const fieldType = getFieldType();
       try {
+        if ("beforeShowRows" in options && typeof options.beforeShowRows === "function") {
+          await options.beforeShowRows();
+        }
         abortShowRows();
         const showRowsCallOrder = options.showRowsCallOrder ?? "both";
         if (showRowsCallOrder === "showRowsAndUpdateSubtotals") {
