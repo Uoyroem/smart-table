@@ -619,7 +619,7 @@
       const type = getTypeFromTh($activeTh);
       const fieldType = getFieldType();
       abortGetValues();
-      let values = await options.getValues(field, fieldType, fieldValuesList);
+      let values = Array.from(new Set(await options.getValues(field, fieldType, fieldValuesList)));
       values.sort(function (a, b) {
         if (a == null || b == null) {
           return 0;
