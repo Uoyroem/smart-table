@@ -166,7 +166,9 @@
     $ths.removeClass("active");
     const activeColumnsKey = `${smartTableId}-activeColumns`;
     let activeColumns = getValue(activeColumnsKey);
-    if (activeColumns) {
+    const allActiveColumns = {};
+    $ths.each(function() {allActiveColumns[$(this).index()] = $(this).data("stField")});
+    if (activeColumns && Object.entries(activeColumns).every(([index, field]) => allActiveColumns[index] == field)) {
       for (const [index, field] of Object.entries(activeColumns)) {
         $(
           `th[data-st-field="${field}"]:nth-child(${parseInt(index) + 1})`,
@@ -174,12 +176,7 @@
         ).addClass("active");
       }
     } else {
-      activeColumns = Array.from($ths).reduce(
-        (activeColumns, th) => (
-          (activeColumns[$(th).index()] = $(th).data("stField")), activeColumns
-        ),
-        {}
-      );
+      activeColumns = allActiveColumns;
       $ths.addClass("active");
       setValue(activeColumnsKey, activeColumns);
     }
