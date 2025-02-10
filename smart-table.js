@@ -112,7 +112,7 @@
       reloading = false;
     }
     $smartTable.on("st.reload.rows", function (event, reloadType) {
-      reload({ type: reloadType, force: true });
+      reload({ type: reloadType ?? options.reloadType, force: true });
     });
     $smartTable.on("st.reload.subtotals", function () {
       updateSubtotals();
@@ -369,11 +369,11 @@
         }
       }
     );
-    $smartTable.on("st.load.filters", function (event, filters, withReload) {
+    $smartTable.on("st.load.filters", function (event, filters, withReload, reloadType) {
       fieldValuesList = filters.fieldValuesList;
       order = filters.order;
       if (withReload) {
-        reload({ type: options.reloadType, force: true });
+        reload({ type: reloadType ?? options.reloadType, force: true });
       }
       saveFiltersData();
     });
@@ -995,7 +995,7 @@
           (fieldValues) => fieldValues.field !== field
         );
         if (withReload) {
-          reload({ type: reloadType ?? options.reloadType ?? "immediately", force: true });
+          reload({ type: reloadType ?? options.reloadType, force: true });
         }
         showFieldValuesPositions();
         saveFiltersData();
