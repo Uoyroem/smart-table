@@ -373,7 +373,7 @@
       fieldValuesList = filters.fieldValuesList;
       order = filters.order;
       if (withReload) {
-        reload({ type: options.firstShowRows, force: true });
+        reload({ type: options.reloadType, force: true });
       }
       saveFiltersData();
     });
@@ -995,7 +995,7 @@
           (fieldValues) => fieldValues.field !== field
         );
         if (withReload) {
-          reload({ type: options.firstShowRows, force: true });
+          reload({ type: options.reloadType, force: true });
         }
         showFieldValuesPositions();
         saveFiltersData();
@@ -1009,7 +1009,9 @@
     $menu.on("click", ".smart-table__menu-value-uncheck-all", function () {
       getSearchQueryValueCheckboxes().prop("checked", false);
     });
-    reload({ type: options.firstShowRows, force: true });
+    if (!("immediatelyReload" in options) || options.immediatelyReload) {
+      reload({ type: options.reloadType, force: true });
+    }
   };
 
   $.fn.smartTableWithVirtualScroll = function (options) {
