@@ -990,12 +990,12 @@
 
     $smartTable.on(
       "st.remove.filter.from.field",
-      function (event, field, withReload) {
+      function (event, field, withReload, reloadType) {
         fieldValuesList = fieldValuesList.filter(
           (fieldValues) => fieldValues.field !== field
         );
         if (withReload) {
-          reload({ type: options.reloadType, force: true });
+          reload({ type: reloadType ?? options.reloadType ?? "immediately", force: true });
         }
         showFieldValuesPositions();
         saveFiltersData();
