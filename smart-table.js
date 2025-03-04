@@ -259,7 +259,7 @@
               type,
             }),
             headers: {
-              "X-CSRFToken": options.csrfToken,
+              "X-CSRFToken": getCsrfToken(),
               "Content-Type": "application/json"
             },
             signal: unloadAbortController.signal,
@@ -1091,7 +1091,7 @@
             fieldValuesList,
           }),
           headers: {
-            "X-CSRFToken": options.csrfToken,
+            "X-CSRFToken": getCsrfToken(),
           },
           signal: this.getValuesAbortController.signal,
         });
@@ -1116,7 +1116,7 @@
             order,
           }),
           headers: {
-            "X-CSRFToken": options.csrfToken,
+            "X-CSRFToken": getCsrfToken(),
           },
           signal: this.showRowsAbortController.signal,
         });
@@ -1162,7 +1162,7 @@
             fieldSubtotal,
           }),
           headers: {
-            "X-CSRFToken": options.csrfToken,
+            "X-CSRFToken": getCsrfToken(),
           },
           signal: this.getSubtotalsAbortController.signal,
         });
