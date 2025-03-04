@@ -260,6 +260,7 @@
             }),
             headers: {
               "X-CSRFToken": options.csrfToken,
+              "Content-Type": "application/json"
             },
             signal: unloadAbortController.signal,
           });
