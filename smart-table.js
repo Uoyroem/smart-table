@@ -228,9 +228,15 @@
     );
 
     const $toolsContainer = $(`
-      <div class="smart-table__tools-container d-flex align-items-center mb-1 gap-2">
+      <div class="d-flex align-items-center mb-1 gap-2">
       </div>
     `);
+    if (options.stickyMenu) {
+      $toolsContainer.addClass("smart-table__tools-container--sticky");
+    } else {
+      $toolsContainer.addClass("smart-table__tools-container");
+    }
+
     $toolsContainer.append($settings);
     if (!("canReload" in options) || options.canReload) {
       $toolsContainer.append($reloadButton);
@@ -325,7 +331,19 @@
         console.error(error);
       }
     }
-    $smartTable.before($toolsContainer);
+    if (options.stickyMenu) {
+      $smartTable.find("thead").prepend(`
+        <tr>
+          <td class="sticky-relative sticky-relative-top" style="position: sticky; z-index: 3; background-color: white;" colspan="${100}">
+          </td>
+        </tr>
+      `).find("td").append($toolsContainer);
+      stickyRelativeUpdatePositions($smartTable[0]);
+
+    } else {
+      $smartTable.before($toolsContainer);
+    }
+    
     const $columnToggleCheckboxes = $(
       ".smart-table__column-toggle-checkboxes",
       $settings
